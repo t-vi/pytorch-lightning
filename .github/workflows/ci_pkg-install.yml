@@ -15,8 +15,7 @@ jobs:
       fail-fast: false
       # max-parallel: 6
       matrix:
-        # PyTorch 1.5 is failing on Win and bolts requires torchvision>=0.5
-        os: [ubuntu-20.04, macOS-10.15 , windows-2019]  #
+        os: [ubuntu-20.04, macOS-10.15, windows-2019]
         python-version: [3.6, 3.9]
 
     steps:
@@ -27,12 +26,11 @@ jobs:
 
       - name: Prepare env
         run: |
-          pip install check-manifest "twine==3.2" setuptools wheel
+          pip install "twine==3.2" setuptools wheel
 
       - name: Create package
         run: |
-          check-manifest
-          # python setup.py check --metadata --strict
+          python setup.py check --metadata --strict
           python setup.py sdist bdist_wheel
 
       - name: Check package
