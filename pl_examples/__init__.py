@@ -14,6 +14,7 @@ _EXAMPLES_ROOT = os.path.dirname(__file__)
 _PACKAGE_ROOT = os.path.dirname(_EXAMPLES_ROOT)
 _DATASETS_PATH = os.path.join(_PACKAGE_ROOT, 'Datasets')
 
+_TORCHVISION_MNIST_AVAILABLE = False
 _DALI_AVAILABLE = _module_available("nvidia.dali")
 
 try:
@@ -21,7 +22,7 @@ try:
     MNIST(_DATASETS_PATH, download=True)
     _TORCHVISION_MNIST_AVAILABLE = True
 except HTTPError:
-    _TORCHVISION_MNIST_AVAILABLE = False
+    pass
 
 LIGHTNING_LOGO = """
                     ####
