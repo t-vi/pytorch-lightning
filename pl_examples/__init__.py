@@ -14,15 +14,14 @@ _EXAMPLES_ROOT = os.path.dirname(__file__)
 _PACKAGE_ROOT = os.path.dirname(_EXAMPLES_ROOT)
 _DATASETS_PATH = os.path.join(_PACKAGE_ROOT, 'Datasets')
 
-_TORCHVISION_MNIST_AVAILABLE = not bool(os.environ.get("PL_USE_MOCKED_MNIST", False))
 _DALI_AVAILABLE = _module_available("nvidia.dali")
 
-if _TORCHVISION_MNIST_AVAILABLE:
-    try:
-        from torchvision.datasets.mnist import MNIST
-        MNIST(_DATASETS_PATH, download=True)
-    except HTTPError:
-        _TORCHVISION_MNIST_AVAILABLE = False
+try:
+    from torchvision.datasets.mnist import MNIST
+    MNIST(_DATASETS_PATH, download=True)
+    _TORCHVISION_MNIST_AVAILABLE = True
+except HTTPError:
+    _TORCHVISION_MNIST_AVAILABLE = False
 
 LIGHTNING_LOGO = """
                     ####

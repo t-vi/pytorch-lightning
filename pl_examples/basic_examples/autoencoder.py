@@ -32,8 +32,6 @@ if _TORCHVISION_AVAILABLE:
     from torchvision import transforms
 if _TORCHVISION_MNIST_AVAILABLE:
     from torchvision.datasets import MNIST
-else:
-    from tests.helpers.datasets import MNIST
 
 
 class LitAutoEncoder(pl.LightningModule):
