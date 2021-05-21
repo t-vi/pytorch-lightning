@@ -43,8 +43,9 @@ if _OMEGACONF_AVAILABLE:
 
 class CheckpointConnector:
 
-    def __init__(self, trainer):
+    def __init__(self, trainer, resume_from_checkpoint: Optional[Union[Path, str]] = None):
         self.trainer = trainer
+        self.resume_checkpoint_path = resume_from_checkpoint
 
         # used to validate checkpointing logic
         self.has_trained = False
@@ -69,8 +70,8 @@ class CheckpointConnector:
             rank_zero_info(f'restored hpc model from: {checkpoint_path}')
 
         # 2. Attempt to restore states from `resume_from_checkpoint` file
-        elif self.trainer.resume_from_checkpoint is not None:
-            self.restore(self.trainer.resume_from_checkpoint, on_gpu=self.trainer._device_type == DeviceType.GPU)
+        elif self.resume_checkpoint_path is not None:
+            self.restore(self.resume_checkpoint_path, on_gpu=self.trainer._device_type == DeviceType.GPU)
 
         # wait for all to catch up
         self.trainer.training_type_plugin.barrier('TrainerIOMixin.restore_weights')
