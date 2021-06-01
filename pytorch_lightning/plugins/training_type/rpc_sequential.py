@@ -39,16 +39,15 @@ log = logging.getLogger(__name__)
 
 
 class RPCSequentialPlugin(RPCPlugin):
-
     def __init__(
         self,
         balance: Optional[List[int]] = None,
         microbatches: int = 8,
-        checkpoint: str = 'except_last',
+        checkpoint: str = "except_last",
         balance_mode: str = "balance_by_size",
         pipelined_backward: Optional[bool] = True,
         rpc_timeout_sec: float = DEFAULT_RPC_TIMEOUT_SEC,
-        **kwargs
+        **kwargs,
     ):
         """
         Provides sequential model parallelism for :class:`nn.Sequential <torch.nn.Sequential>` module.
@@ -98,14 +97,10 @@ class RPCSequentialPlugin(RPCPlugin):
         self.pipelined_backward = pipelined_backward
         self._main_rpc_process = True
 
-    def init_ddp_connection(
-        self,
-        global_rank: Optional[int] = None,
-        world_size: Optional[int] = None,
-    ) -> None:
+    def init_ddp_connection(self, global_rank: Optional[int] = None, world_size: Optional[int] = None) -> None:
         if self.lightning_module.trainer.amp_backend is not None:
             raise MisconfigurationException(
-                '`RPCSequentialPlugin` is currently not supported in Automatic Mixed Precision'
+                "`RPCSequentialPlugin` is currently not supported in Automatic Mixed Precision"
             )
 
         if self._skip_init_connections():
@@ -135,17 +130,17 @@ class RPCSequentialPlugin(RPCPlugin):
             self.exit_rpc_process()
 
     def _infer_model_balance(self):
-        log.info(f'Inferring model balance using {self.balance_mode} mode')
+        log.info(f"Inferring model balance using {self.balance_mode} mode")
         model = self.lightning_module
         if model.example_input_array is None:
             raise MisconfigurationException(
-                'Please set example_input_array to your model, so we can infer the right model balance for you'
+                "Please set example_input_array to your model, so we can infer the right model balance for you"
             )
         balance_func = getattr(pipe_balance, self.balance_mode)
         self.balance = balance_func(self.gpus_per_model, model.sequential_module, model.example_input_array)
         self._sync_balance_to_all_parallel_groups()
 
-        log.info(f'The following model balance {self.balance.tolist()} was inferred using {self.balance_mode} mode')
+        log.info(f"The following model balance {self.balance.tolist()} was inferred using {self.balance_mode} mode")
 
     def _sync_balance_to_all_parallel_groups(self, main_rank=0):
         """
@@ -153,7 +148,7 @@ class RPCSequentialPlugin(RPCPlugin):
         Args:
             main_rank: The rank with the balance we'd like to replicate.
         """
-        self.balance = torch.tensor(self.balance, dtype=torch.int, device='cuda')
+        self.balance = torch.tensor(self.balance, dtype=torch.int, device="cuda")
         # Ensure we sync to all processes within the main data parallel group
         # We use the data parallel group as all main processes are found within the same group
         torch_distrib.broadcast(self.balance, src=main_rank, group=mpu.get_data_parallel_group())
@@ -162,8 +157,8 @@ class RPCSequentialPlugin(RPCPlugin):
     def _check_sequential_model_exists(self, model):
         if not hasattr(model, "sequential_module") or not isinstance(model.sequential_module, nn.Sequential):
             raise MisconfigurationException(
-                'Could not find a PipeLightningModule within the model. '
-                'Did you set your sequential model as the `sequential_module` attribute of your model?'
+                "Could not find a PipeLightningModule within the model. "
+                "Did you set your sequential model as the `sequential_module` attribute of your model?"
             )
 
     def _find_and_init_pipe_module(self, model):
@@ -190,16 +185,16 @@ class RPCSequentialPlugin(RPCPlugin):
 
         else:
             raise MisconfigurationException(
-                'Could not find a PipeLightningModule within the model. '
-                'Did you defined set your sequential model as a `sequential_module` attribute of your model?'
+                "Could not find a PipeLightningModule within the model. "
+                "Did you defined set your sequential model as a `sequential_module` attribute of your model?"
             )
 
     def _assert_valid_model_balance(self):
         model = self.lightning_module
         if sum(self.balance) != len(model.sequential_module):
             raise MisconfigurationException(
-                f'The provided balance sum: {sum(self.balance)} does not'
-                f' match your Sequential length: {len(model.sequential_module)}'
+                f"The provided balance sum: {sum(self.balance)} does not"
+                f" match your Sequential length: {len(model.sequential_module)}"
             )
 
     def _skip_init_connections(self):
@@ -280,19 +275,12 @@ class RPCSequentialPlugin(RPCPlugin):
 
     def worker_optimizer_step(self, model: LightningModule, opt_idx: int, *args, **kwargs) -> None:
         model.sequential_module.foreach_worker(
-            run_optimizer, {
-                "opt_idx": opt_idx,
-                "args": args,
-                "kwargs": kwargs
-            }, include_self=False
+            run_optimizer, {"opt_idx": opt_idx, "args": args, "kwargs": kwargs}, include_self=False
         )
 
     @property
     def distributed_sampler_kwargs(self):
-        return dict(
-            num_replicas=mpu.get_data_parallel_world_size(),
-            rank=mpu.get_data_parallel_rank(),
-        )
+        return dict(num_replicas=mpu.get_data_parallel_world_size(), rank=mpu.get_data_parallel_rank())
 
     @property
     def data_parallel_group(self):
@@ -316,7 +304,7 @@ class RPCSequentialPlugin(RPCPlugin):
     def _check_pipe_available(self):
         if not _FAIRSCALE_PIPE_AVAILABLE:
             raise MisconfigurationException(
-                'PipeRPCPlugin requires FairScale and currently is only supported on PyTorch 1.6.'
+                "PipeRPCPlugin requires FairScale and currently is only supported on PyTorch 1.6."
             )
 
     def post_optimizer_step(self, optimizer: Optimizer, optimizer_idx: int, **kwargs) -> None:
@@ -343,7 +331,7 @@ class LightningPipeModule(nn.Module):
     This class wraps Fairscale Pipe and PipeRCPWrapper class.
     """
 
-    def __init__(self, module: nn.Sequential, balance: List[int], microbatches: int = 8, checkpoint='never'):
+    def __init__(self, module: nn.Sequential, balance: List[int], microbatches: int = 8, checkpoint="never"):
         super().__init__()
         self.module = module
         self.balance = balance
@@ -398,7 +386,7 @@ def save_layers_on_all_rank_zero_workers(ctx, model):
 
 
 def load_sequential_from_saved_layers(gpus_per_model):
-    partial_seqs = [torch.load(f"seq_{rank}.pt", map_location='cpu') for rank in range(gpus_per_model)]
+    partial_seqs = [torch.load(f"seq_{rank}.pt", map_location="cpu") for rank in range(gpus_per_model)]
     seq = nn.Sequential()
     for p_seq in partial_seqs:
         for name, child in p_seq.named_children():

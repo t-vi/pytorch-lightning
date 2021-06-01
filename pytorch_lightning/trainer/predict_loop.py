@@ -25,7 +25,6 @@ from pytorch_lightning.utilities.warnings import WarningCache
 
 
 class PredictLoop(object):
-
     def __init__(self, trainer):
         self.trainer = trainer
         self.max_batches = None
@@ -97,9 +96,9 @@ class PredictLoop(object):
         return length
 
     def _build_kwargs(self, batch, batch_idx, dataloader_idx):
-        step_kwargs = OrderedDict([('batch', batch), ('batch_idx', batch_idx)])
+        step_kwargs = OrderedDict([("batch", batch), ("batch_idx", batch_idx)])
         if self.num_dataloaders:
-            step_kwargs['dataloader_idx'] = dataloader_idx
+            step_kwargs["dataloader_idx"] = dataloader_idx
         return step_kwargs
 
     def predict_step(self, batch: Any, batch_idx: int, dataloader_idx: int) -> None:

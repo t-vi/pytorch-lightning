@@ -33,7 +33,7 @@ def is_overridden(method_name: str, model: Union[LightningModule, LightningDataM
     super_attr = getattr(super_object, method_name)
 
     # when code pointers are different, it was implemented
-    if hasattr(instance_attr, 'patch_loader_code'):
+    if hasattr(instance_attr, "patch_loader_code"):
         # cannot pickle __code__ so cannot verify if PatchDataloader
         # exists which shows dataloader methods have been overwritten.
         # so, we hack it by using the string representation

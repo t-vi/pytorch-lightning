@@ -12,7 +12,7 @@ from tests.helpers.boring_model import BoringModel
 
 
 def test_unsupported_precision_plugins():
-    """ Test error messages are raised for unsupported precision plugins with CPU. """
+    """Test error messages are raised for unsupported precision plugins with CPU."""
     trainer = Mock()
     model = Mock()
     accelerator = CPUAccelerator(
@@ -30,7 +30,6 @@ def test_plugin_setup_optimizers_in_pre_dispatch(tmpdir, delay_dispatch):
     """
 
     class TestModel(BoringModel):
-
         def on_fit_start(self):
             if delay_dispatch:
                 # Ensure we haven't setup optimizers if we've delayed dispatch
@@ -42,7 +41,6 @@ def test_plugin_setup_optimizers_in_pre_dispatch(tmpdir, delay_dispatch):
             assert len(self.trainer.optimizers) > 0
 
     class CustomPlugin(SingleDevicePlugin):
-
         @property
         def setup_optimizers_in_pre_dispatch(self) -> bool:
             return delay_dispatch

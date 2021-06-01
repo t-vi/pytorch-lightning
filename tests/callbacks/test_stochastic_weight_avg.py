@@ -32,7 +32,6 @@ if _TORCH_GREATER_EQUAL_1_6:
     from pytorch_lightning.callbacks import StochasticWeightAveraging
 
     class SwaTestModel(BoringModel):
-
         def __init__(self, batchnorm: bool = True, interval: str = "epoch"):
             super().__init__()
             layers = [nn.Linear(32, 32)]
@@ -57,7 +56,7 @@ if _TORCH_GREATER_EQUAL_1_6:
                 "lr_scheduler": {
                     "scheduler": torch.optim.lr_scheduler.StepLR(optimizer, step_size=1),
                     "interval": self.interval,
-                }
+                },
             }
 
     class SwaTestCallback(StochasticWeightAveraging):
@@ -97,9 +96,9 @@ if _TORCH_GREATER_EQUAL_1_6:
             assert trainer.num_training_batches == 5
 
             # check backward call count. the batchnorm update epoch should not backward
-            assert trainer.dev_debugger.count_events(
-                "backward_call"
-            ) == trainer.max_epochs * trainer.limit_train_batches
+            assert (
+                trainer.dev_debugger.count_events("backward_call") == trainer.max_epochs * trainer.limit_train_batches
+            )
 
             # check call counts
             assert self.update_parameters_calls == trainer.max_epochs - (self._swa_epoch_start - 1)
@@ -125,7 +124,7 @@ def train_with_swa(tmpdir, batchnorm=True, accelerator=None, gpus=None, num_proc
         accumulate_grad_batches=2,
         accelerator=accelerator,
         gpus=gpus,
-        num_processes=num_processes
+        num_processes=num_processes,
     )
     trainer.fit(model)
 
@@ -186,14 +185,13 @@ def test_swa_raises():
         StochasticWeightAveraging(swa_epoch_start=5, swa_lrs=[0.2, 1])
 
 
-@pytest.mark.parametrize('stochastic_weight_avg', [False, True])
-@pytest.mark.parametrize('use_callbacks', [False, True])
+@pytest.mark.parametrize("stochastic_weight_avg", [False, True])
+@pytest.mark.parametrize("use_callbacks", [False, True])
 @RunIf(min_torch="1.6.0")
 def test_trainer_and_stochastic_weight_avg(tmpdir, use_callbacks: bool, stochastic_weight_avg: bool):
     """Test to ensure SWA Callback is injected when `stochastic_weight_avg` is provided to the Trainer"""
 
     class TestModel(BoringModel):
-
         def configure_optimizers(self):
             optimizer = torch.optim.SGD(self.layer.parameters(), lr=0.1)
             return optimizer

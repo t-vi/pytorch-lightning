@@ -106,7 +106,7 @@ def parse_tpu_cores(tpu_cores: Union[int, str, List]) -> Optional[Union[List[int
         raise MisconfigurationException("`tpu_cores` can only be 1, 8 or [<1-8>]")
 
     if tpu_cores is not None and not _TPU_AVAILABLE:
-        raise MisconfigurationException('No TPU devices were found.')
+        raise MisconfigurationException("No TPU devices were found.")
 
     return tpu_cores
 
@@ -114,10 +114,10 @@ def parse_tpu_cores(tpu_cores: Union[int, str, List]) -> Optional[Union[List[int
 def _normalize_parse_gpu_string_input(s: Union[int, str, List[int]]) -> Union[int, List[int]]:
     if not isinstance(s, str):
         return s
-    if s == '-1':
+    if s == "-1":
         return -1
-    elif ',' in s:
-        return [int(x.strip()) for x in s.split(',') if len(x) > 0]
+    elif "," in s:
+        return [int(x.strip()) for x in s.split(",") if len(x) > 0]
     else:
         num_gpus = int(s.strip())
         if _compare_version("pytorch_lightning", operator.lt, "1.5"):
@@ -182,8 +182,9 @@ def _check_data_type(device_ids: Any) -> None:
     Args:
         device_ids: gpus/tpu_cores parameter as passed to the Trainer
     """
-    if device_ids is not None and \
-            (not isinstance(device_ids, (int, str, MutableSequence, tuple)) or isinstance(device_ids, bool)):
+    if device_ids is not None and (
+        not isinstance(device_ids, (int, str, MutableSequence, tuple)) or isinstance(device_ids, bool)
+    ):
         raise MisconfigurationException("Device ID's (GPU/TPU) must be int, string or sequence of ints or None.")
 
 
@@ -204,8 +205,8 @@ def _tpu_cores_valid(tpu_cores):
 
 
 def _parse_tpu_cores_str(tpu_cores):
-    if tpu_cores in ('1', '8'):
+    if tpu_cores in ("1", "8"):
         tpu_cores = int(tpu_cores)
     else:
-        tpu_cores = [int(x.strip()) for x in tpu_cores.split(',') if len(x) > 0]
+        tpu_cores = [int(x.strip()) for x in tpu_cores.split(",") if len(x) > 0]
     return tpu_cores

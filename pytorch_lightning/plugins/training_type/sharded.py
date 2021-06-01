@@ -31,9 +31,9 @@ if _FAIRSCALE_AVAILABLE:
 
 
 class DDPShardedPlugin(DDPPlugin):
-    """ Optimizer and gradient sharded training provided by FairScale. """
+    """Optimizer and gradient sharded training provided by FairScale."""
 
-    _REDUCE_BUFFER_SIZE_DEFAULT = 2**23  # 8M
+    _REDUCE_BUFFER_SIZE_DEFAULT = 2 ** 23  # 8M
 
     def configure_ddp(self):
         self._wrap_optimizers()

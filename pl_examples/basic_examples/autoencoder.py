@@ -47,16 +47,8 @@ class LitAutoEncoder(pl.LightningModule):
 
     def __init__(self, hidden_dim: int = 64):
         super().__init__()
-        self.encoder = nn.Sequential(
-            nn.Linear(28 * 28, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, 3),
-        )
-        self.decoder = nn.Sequential(
-            nn.Linear(3, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, 28 * 28),
-        )
+        self.encoder = nn.Sequential(nn.Linear(28 * 28, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, 3))
+        self.decoder = nn.Sequential(nn.Linear(3, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, 28 * 28))
 
     def forward(self, x):
         # in lightning, forward defines the prediction/inference actions
@@ -77,7 +69,7 @@ class LitAutoEncoder(pl.LightningModule):
         z = self.encoder(x)
         x_hat = self.decoder(z)
         loss = F.mse_loss(x_hat, x)
-        self.log('valid_loss', loss, on_step=True)
+        self.log("valid_loss", loss, on_step=True)
 
     def test_step(self, batch, batch_idx):
         x, y = batch
@@ -85,7 +77,7 @@ class LitAutoEncoder(pl.LightningModule):
         z = self.encoder(x)
         x_hat = self.decoder(z)
         loss = F.mse_loss(x_hat, x)
-        self.log('test_loss', loss, on_step=True)
+        self.log("test_loss", loss, on_step=True)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
@@ -93,11 +85,7 @@ class LitAutoEncoder(pl.LightningModule):
 
 
 class MyDataModule(pl.LightningDataModule):
-
-    def __init__(
-        self,
-        batch_size: int = 32,
-    ):
+    def __init__(self, batch_size: int = 32):
         super().__init__()
         dataset = MNIST(_DATASETS_PATH, train=True, download=True, transform=transforms.ToTensor())
         self.mnist_test = MNIST(_DATASETS_PATH, train=False, download=True, transform=transforms.ToTensor())
@@ -119,6 +107,6 @@ def cli_main():
     cli.trainer.test(cli.model, datamodule=cli.datamodule)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli_lightning_logo()
     cli_main()

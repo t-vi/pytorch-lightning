@@ -32,7 +32,7 @@ if _FAIRSCALE_AVAILABLE:
 
 
 class DDPSpawnShardedPlugin(DDPSpawnPlugin):
-    """ Optimizer sharded training provided by FairScale. """
+    """Optimizer sharded training provided by FairScale."""
 
     def configure_ddp(self):
         self._wrap_optimizers()
@@ -57,7 +57,7 @@ class DDPSpawnShardedPlugin(DDPSpawnPlugin):
             return
         self._reinit_optimizers_with_oss()
 
-    def optimizer_state(self, optimizer: 'OSS') -> Optional[dict]:
+    def optimizer_state(self, optimizer: "OSS") -> Optional[dict]:
         if isinstance(optimizer, OSS):
             optimizer.consolidate_state_dict()
         return self._optim_state_dict(optimizer)

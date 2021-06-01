@@ -23,7 +23,6 @@ from tests.helpers.runif import RunIf
 
 
 class DummyMetric(Metric):
-
     def __init__(self):
         super().__init__()
         self.add_state("x", torch.tensor(0), dist_reduce_fx="sum")
@@ -65,9 +64,9 @@ def _ddp_test_fn(rank, worldsize):
 
             cumulative_sum += i
 
-            result.log('a', metric_a, on_step=True, on_epoch=True)
-            result.log('b', metric_b, on_step=False, on_epoch=True)
-            result.log('c', metric_c, on_step=True, on_epoch=False)
+            result.log("a", metric_a, on_step=True, on_epoch=True)
+            result.log("b", metric_b, on_step=False, on_epoch=True)
+            result.log("c", metric_c, on_step=True, on_epoch=False)
 
             batch_log = result.get_batch_log_metrics()
             batch_expected = {"a_step": i, "a": i, "c": i}
@@ -79,9 +78,9 @@ def _ddp_test_fn(rank, worldsize):
         result.reset()
 
         # assert metric state reset to default values
-        assert metric_a.x == metric_a._defaults['x']
-        assert metric_b.x == metric_b._defaults['x']
-        assert metric_c.x == metric_c._defaults['x']
+        assert metric_a.x == metric_a._defaults["x"]
+        assert metric_b.x == metric_b._defaults["x"]
+        assert metric_c.x == metric_c._defaults["x"]
 
         epoch_expected = {"b": cumulative_sum * worldsize, "a_epoch": cumulative_sum * worldsize}
 
@@ -96,7 +95,7 @@ def test_result_reduce_ddp():
     tutils.set_random_master_port()
 
     worldsize = 2
-    mp.spawn(_ddp_test_fn, args=(worldsize, ), nprocs=worldsize)
+    mp.spawn(_ddp_test_fn, args=(worldsize,), nprocs=worldsize)
 
 
 def test_result_metric_integration():
@@ -116,9 +115,9 @@ def test_result_metric_integration():
 
             cumulative_sum += i
 
-            result.log('a', metric_a, on_step=True, on_epoch=True)
-            result.log('b', metric_b, on_step=False, on_epoch=True)
-            result.log('c', metric_c, on_step=True, on_epoch=False)
+            result.log("a", metric_a, on_step=True, on_epoch=True)
+            result.log("b", metric_b, on_step=False, on_epoch=True)
+            result.log("c", metric_c, on_step=True, on_epoch=False)
 
             batch_log = result.get_batch_log_metrics()
             batch_expected = {"a_step": i, "a": i, "c": i}
@@ -130,9 +129,9 @@ def test_result_metric_integration():
         result.reset()
 
         # assert metric state reset to default values
-        assert metric_a.x == metric_a._defaults['x']
-        assert metric_b.x == metric_b._defaults['x']
-        assert metric_c.x == metric_c._defaults['x']
+        assert metric_a.x == metric_a._defaults["x"]
+        assert metric_b.x == metric_b._defaults["x"]
+        assert metric_c.x == metric_c._defaults["x"]
 
         epoch_expected = {"b": cumulative_sum, "a_epoch": cumulative_sum}
 

@@ -94,7 +94,6 @@ def test_hooks_no_recursion_error():
     # hooks were appended in cascade every tine a new data module was instantiated leading to a recursion error.
     # See https://github.com/PyTorchLightning/pytorch-lightning/issues/3652
     class DummyDM(LightningDataModule):
-
         def setup(self, *args, **kwargs):
             pass
 
@@ -116,8 +115,8 @@ def test_helper_boringdatamodule():
 def test_helper_boringdatamodule_with_verbose_setup():
     dm = BoringDataModule()
     dm.prepare_data()
-    dm.setup('fit')
-    dm.setup('test')
+    dm.setup("fit")
+    dm.setup("test")
 
 
 def test_data_hooks_called():
@@ -179,49 +178,49 @@ def test_data_hooks_called_verbose(use_kwarg):
     assert not dm.has_teardown_validate
     assert not dm.has_teardown_predict
 
-    dm.setup(stage='fit') if use_kwarg else dm.setup('fit')
+    dm.setup(stage="fit") if use_kwarg else dm.setup("fit")
     assert dm.has_setup_fit
     assert not dm.has_setup_validate
     assert not dm.has_setup_test
     assert not dm.has_setup_predict
 
-    dm.setup(stage='validate') if use_kwarg else dm.setup('validate')
+    dm.setup(stage="validate") if use_kwarg else dm.setup("validate")
     assert dm.has_setup_fit
     assert dm.has_setup_validate
     assert not dm.has_setup_test
     assert not dm.has_setup_predict
 
-    dm.setup(stage='test') if use_kwarg else dm.setup('test')
+    dm.setup(stage="test") if use_kwarg else dm.setup("test")
     assert dm.has_setup_fit
     assert dm.has_setup_validate
     assert dm.has_setup_test
     assert not dm.has_setup_predict
 
-    dm.setup(stage='predict') if use_kwarg else dm.setup('predict')
+    dm.setup(stage="predict") if use_kwarg else dm.setup("predict")
     assert dm.has_setup_fit
     assert dm.has_setup_validate
     assert dm.has_setup_test
     assert dm.has_setup_predict
 
-    dm.teardown(stage='fit') if use_kwarg else dm.teardown('fit')
+    dm.teardown(stage="fit") if use_kwarg else dm.teardown("fit")
     assert dm.has_teardown_fit
     assert not dm.has_teardown_validate
     assert not dm.has_teardown_test
     assert not dm.has_teardown_predict
 
-    dm.teardown(stage='validate') if use_kwarg else dm.teardown('validate')
+    dm.teardown(stage="validate") if use_kwarg else dm.teardown("validate")
     assert dm.has_teardown_fit
     assert dm.has_teardown_validate
     assert not dm.has_teardown_test
     assert not dm.has_teardown_predict
 
-    dm.teardown(stage='test') if use_kwarg else dm.teardown('test')
+    dm.teardown(stage="test") if use_kwarg else dm.teardown("test")
     assert dm.has_teardown_fit
     assert dm.has_teardown_validate
     assert dm.has_teardown_test
     assert not dm.has_teardown_predict
 
-    dm.teardown(stage='predict') if use_kwarg else dm.teardown('predict')
+    dm.teardown(stage="predict") if use_kwarg else dm.teardown("predict")
     assert dm.has_teardown_fit
     assert dm.has_teardown_validate
     assert dm.has_teardown_test
@@ -231,14 +230,14 @@ def test_data_hooks_called_verbose(use_kwarg):
 def test_dm_add_argparse_args(tmpdir):
     parser = ArgumentParser()
     parser = BoringDataModule.add_argparse_args(parser)
-    args = parser.parse_args(['--data_dir', str(tmpdir)])
+    args = parser.parse_args(["--data_dir", str(tmpdir)])
     assert args.data_dir == str(tmpdir)
 
 
 def test_dm_init_from_argparse_args(tmpdir):
     parser = ArgumentParser()
     parser = BoringDataModule.add_argparse_args(parser)
-    args = parser.parse_args(['--data_dir', str(tmpdir)])
+    args = parser.parse_args(["--data_dir", str(tmpdir)])
     dm = BoringDataModule.from_argparse_args(args)
     dm.prepare_data()
     dm.setup()
@@ -263,16 +262,12 @@ def test_train_loop_only(tmpdir):
     model.test_step_end = None
     model.test_epoch_end = None
 
-    trainer = Trainer(
-        default_root_dir=tmpdir,
-        max_epochs=1,
-        weights_summary=None,
-    )
+    trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, weights_summary=None)
 
     # fit model
     trainer.fit(model, datamodule=dm)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
-    assert trainer.callback_metrics['train_loss'] < 1.0
+    assert trainer.callback_metrics["train_loss"] < 1.0
 
 
 def test_train_val_loop_only(tmpdir):
@@ -285,29 +280,22 @@ def test_train_val_loop_only(tmpdir):
     model.validation_step_end = None
     model.validation_epoch_end = None
 
-    trainer = Trainer(
-        default_root_dir=tmpdir,
-        max_epochs=1,
-        weights_summary=None,
-    )
+    trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, weights_summary=None)
 
     # fit model
     trainer.fit(model, datamodule=dm)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
-    assert trainer.callback_metrics['train_loss'] < 1.0
+    assert trainer.callback_metrics["train_loss"] < 1.0
 
 
 def test_dm_checkpoint_save(tmpdir):
-
     class CustomBoringModel(BoringModel):
-
         def validation_step(self, batch, batch_idx):
             out = super().validation_step(batch, batch_idx)
-            self.log('early_stop_on', out['x'])
+            self.log("early_stop_on", out["x"])
             return out
 
     class CustomBoringDataModule(BoringDataModule):
-
         def on_save_checkpoint(self, checkpoint: Dict[str, Any]) -> None:
             checkpoint[self.__class__.__name__] = self.__class__.__name__
 
@@ -324,7 +312,7 @@ def test_dm_checkpoint_save(tmpdir):
         limit_train_batches=2,
         limit_val_batches=1,
         weights_summary=None,
-        callbacks=[ModelCheckpoint(dirpath=tmpdir, monitor='early_stop_on')],
+        callbacks=[ModelCheckpoint(dirpath=tmpdir, monitor="early_stop_on")],
     )
 
     # fit model
@@ -342,12 +330,7 @@ def test_full_loop(tmpdir):
     dm = ClassifDataModule()
     model = ClassificationModel()
 
-    trainer = Trainer(
-        default_root_dir=tmpdir,
-        max_epochs=1,
-        weights_summary=None,
-        deterministic=True,
-    )
+    trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, weights_summary=None, deterministic=True)
 
     # fit model
     trainer.fit(model, dm)
@@ -357,21 +340,20 @@ def test_full_loop(tmpdir):
     # validate
     result = trainer.validate(datamodule=dm)
     assert dm.trainer is not None
-    assert result[0]['val_acc'] > 0.7
+    assert result[0]["val_acc"] > 0.7
 
     # test
     result = trainer.test(datamodule=dm)
     assert dm.trainer is not None
-    assert result[0]['test_acc'] > 0.6
+    assert result[0]["test_acc"] > 0.6
 
 
 @RunIf(min_gpus=1)
 @mock.patch("pytorch_lightning.accelerators.accelerator.Accelerator.lightning_module", new_callable=PropertyMock)
 def test_dm_apply_batch_transfer_handler(get_module_mock):
-    expected_device = torch.device('cuda', 0)
+    expected_device = torch.device("cuda", 0)
 
     class CustomBatch:
-
         def __init__(self, data):
             self.samples = data[0]
             self.targets = data[1]
@@ -413,7 +395,7 @@ def test_dm_apply_batch_transfer_handler(get_module_mock):
     trainer = Trainer(gpus=1)
     # running .fit() would require us to implement custom data loaders, we mock the model reference instead
     get_module_mock.return_value = model
-    if is_overridden('transfer_batch_to_device', dm):
+    if is_overridden("transfer_batch_to_device", dm):
         model.transfer_batch_to_device = dm.transfer_batch_to_device
 
     model.on_before_batch_transfer = dm.on_before_batch_transfer
@@ -435,7 +417,6 @@ def test_dm_reload_dataloaders_every_epoch(tmpdir):
     reload_dataloaders_every_epoch is set to True/False"""
 
     class CustomBoringDataModule(BoringDataModule):
-
         def __init__(self):
             super().__init__()
             self._epochs_called_for = []
@@ -456,16 +437,12 @@ def test_dm_reload_dataloaders_every_epoch(tmpdir):
     model.test_epoch_end = None
 
     trainer = Trainer(
-        default_root_dir=tmpdir,
-        max_epochs=2,
-        limit_train_batches=0.01,
-        reload_dataloaders_every_epoch=True,
+        default_root_dir=tmpdir, max_epochs=2, limit_train_batches=0.01, reload_dataloaders_every_epoch=True
     )
     trainer.fit(model, dm)
 
 
 class DummyDS(torch.utils.data.Dataset):
-
     def __getitem__(self, index):
         return 1
 
@@ -474,7 +451,6 @@ class DummyDS(torch.utils.data.Dataset):
 
 
 class DummyIDS(torch.utils.data.IterableDataset):
-
     def __iter__(self):
         yield 1
 
@@ -495,10 +471,12 @@ def test_dm_init_from_datasets_dataloaders(iterable):
     dm = LightningDataModule.from_datasets(train_ds_sequence, batch_size=4, num_workers=0)
     with mock.patch("pytorch_lightning.core.datamodule.DataLoader") as dl_mock:
         dm.train_dataloader()
-        dl_mock.assert_has_calls([
-            call(train_ds_sequence[0], batch_size=4, shuffle=not iterable, num_workers=0, pin_memory=True),
-            call(train_ds_sequence[1], batch_size=4, shuffle=not iterable, num_workers=0, pin_memory=True)
-        ])
+        dl_mock.assert_has_calls(
+            [
+                call(train_ds_sequence[0], batch_size=4, shuffle=not iterable, num_workers=0, pin_memory=True),
+                call(train_ds_sequence[1], batch_size=4, shuffle=not iterable, num_workers=0, pin_memory=True),
+            ]
+        )
     assert dm.val_dataloader() is None
     assert dm.test_dataloader() is None
 
@@ -518,12 +496,14 @@ def test_dm_init_from_datasets_dataloaders(iterable):
     with mock.patch("pytorch_lightning.core.datamodule.DataLoader") as dl_mock:
         dm.val_dataloader()
         dm.test_dataloader()
-        dl_mock.assert_has_calls([
-            call(valid_dss[0], batch_size=4, shuffle=False, num_workers=0, pin_memory=True),
-            call(valid_dss[1], batch_size=4, shuffle=False, num_workers=0, pin_memory=True),
-            call(test_dss[0], batch_size=4, shuffle=False, num_workers=0, pin_memory=True),
-            call(test_dss[1], batch_size=4, shuffle=False, num_workers=0, pin_memory=True)
-        ])
+        dl_mock.assert_has_calls(
+            [
+                call(valid_dss[0], batch_size=4, shuffle=False, num_workers=0, pin_memory=True),
+                call(valid_dss[1], batch_size=4, shuffle=False, num_workers=0, pin_memory=True),
+                call(test_dss[0], batch_size=4, shuffle=False, num_workers=0, pin_memory=True),
+                call(test_dss[1], batch_size=4, shuffle=False, num_workers=0, pin_memory=True),
+            ]
+        )
 
 
 def test_datamodule_hooks_calls(tmpdir):
@@ -549,21 +529,21 @@ def test_datamodule_hooks_calls(tmpdir):
     dm = TestDataModule()
     dm.prepare_data()
     dm.prepare_data()
-    dm.setup('fit')
-    dm.setup('fit')
+    dm.setup("fit")
+    dm.setup("fit")
     dm.setup()
     dm.setup()
-    dm.teardown('validate')
-    dm.teardown('validate')
+    dm.teardown("validate")
+    dm.teardown("validate")
 
     assert dm.prepare_data_calls == 1
-    assert dm.setup_calls == ['fit', None]
-    assert dm.teardown_calls == ['validate']
+    assert dm.setup_calls == ["fit", None]
+    assert dm.teardown_calls == ["validate"]
 
     trainer = Trainer(default_root_dir=tmpdir, fast_dev_run=1)
     trainer.test(BoringModel(), datamodule=dm)
 
     # same number of calls
     assert dm.prepare_data_calls == 1
-    assert dm.setup_calls == ['fit', None]
-    assert dm.teardown_calls == ['validate', 'test']
+    assert dm.setup_calls == ["fit", None]
+    assert dm.teardown_calls == ["validate", "test"]

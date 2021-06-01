@@ -38,7 +38,6 @@ from pytorch_lightning.utilities.warnings import WarningCache
 
 
 class TrainLoop:
-
     def __init__(
         self,
         trainer,
@@ -176,8 +175,8 @@ class TrainLoop:
         processed_batch_end_outputs = TrainLoop._prepare_outputs(batch_end_outputs, batch_mode=True)
 
         # hook
-        self.trainer.call_hook('on_train_batch_end', processed_batch_end_outputs, batch, batch_idx, dataloader_idx)
-        self.trainer.call_hook('on_batch_end')
+        self.trainer.call_hook("on_train_batch_end", processed_batch_end_outputs, batch, batch_idx, dataloader_idx)
+        self.trainer.call_hook("on_batch_end")
 
         # figure out what to track for epoch end
         self.track_epoch_end_reduce_metrics(epoch_output, batch_end_outputs)
@@ -278,7 +277,7 @@ class TrainLoop:
             step_kwargs = self._build_kwargs(split_batch, batch_idx, opt_idx, hiddens)
 
             # manually capture logged metrics
-            model_ref._current_fx_name = 'training_step'
+            model_ref._current_fx_name = "training_step"
             model_ref._results = Result()
             with self.trainer.profiler.profile("training_step"):
                 training_step_output = self.trainer.accelerator.training_step(step_kwargs)
@@ -358,8 +357,7 @@ class TrainLoop:
 
     @staticmethod
     def _prepare_outputs(
-        outputs: List[List[List[Result]]],
-        batch_mode: bool,
+        outputs: List[List[List[Result]]], batch_mode: bool
     ) -> Union[List[List[List[Dict]]], List[List[Dict]], List[Dict], Dict]:
         """
         Extract required information from batch or epoch end results.
@@ -391,7 +389,7 @@ class TrainLoop:
                 for tbptt_output in batch_outputs:
                     out = tbptt_output.extra
                     if tbptt_output.minimize is not None:
-                        out['loss'] = tbptt_output.minimize.detach()
+                        out["loss"] = tbptt_output.minimize.detach()
                     processed_tbptt_outputs.append(out)
 
                 # if there was only one tbptt step then we can collapse that dimension
@@ -418,8 +416,8 @@ class TrainLoop:
         # native amp + lbfgs is a no go right now
         if using_native_amp and is_lbfgs:
             raise MisconfigurationException(
-                'native PyTorch amp and lbfgs are not compatible.'
-                ' To request, please file a Github issue in PyTorch and tag @mcarilli'
+                "native PyTorch amp and lbfgs are not compatible."
+                " To request, please file a Github issue in PyTorch and tag @mcarilli"
             )
 
         # wraps into LightningOptimizer only for running step
@@ -438,7 +436,7 @@ class TrainLoop:
         )
 
     def on_before_zero_grad(self, optimizer):
-        self.trainer.call_hook('on_before_zero_grad', optimizer)
+        self.trainer.call_hook("on_before_zero_grad", optimizer)
 
     def optimizer_zero_grad(self, batch_idx, optimizer, opt_idx):
         self.trainer.accelerator.optimizer_zero_grad(self.trainer.current_epoch, batch_idx, optimizer, opt_idx)
@@ -497,11 +495,7 @@ class TrainLoop:
             # hook
             # TODO: add outputs to batches
             self.on_train_batch_end(
-                epoch_output,
-                batch_output.training_step_output_for_epoch_end,
-                batch,
-                batch_idx,
-                dataloader_idx,
+                epoch_output, batch_output.training_step_output_for_epoch_end, batch, batch_idx, dataloader_idx
             )
 
             # -----------------------------------------
@@ -524,7 +518,7 @@ class TrainLoop:
             self.save_loggers_on_train_batch_end()
 
             # update LR schedulers
-            self.update_lr_schedulers('step')
+            self.update_lr_schedulers("step")
             self.trainer.checkpoint_connector.has_trained = True
 
             self.total_batch_idx += 1
@@ -532,7 +526,7 @@ class TrainLoop:
             # progress global step according to grads progress
             self.increment_accumulated_grad_global_step()
 
-            max_steps_reached = (self.max_steps is not None and self.max_steps <= self.global_step)
+            max_steps_reached = self.max_steps is not None and self.max_steps <= self.global_step
             if max_steps_reached or self.trainer.should_stop or self._num_training_batches_reached(is_last_batch):
                 break
 
@@ -552,7 +546,7 @@ class TrainLoop:
         self.trainer.logger_connector.log_train_epoch_end_metrics(epoch_output)
         self.global_step += 1
 
-        self.update_lr_schedulers('epoch')
+        self.update_lr_schedulers("epoch")
 
         did_train_only = self.trainer.disable_validation or self.trainer.evaluation_loop.should_skip_evaluation(
             self.trainer.num_val_batches
@@ -572,16 +566,16 @@ class TrainLoop:
         # get the model and call model.training_epoch_end
         model = self.trainer.lightning_module
 
-        if is_overridden('training_epoch_end', model=model):
+        if is_overridden("training_epoch_end", model=model):
             # run training_epoch_end
             # refresh the result for custom logging at the epoch level
-            model._current_fx_name = 'training_epoch_end'
+            model._current_fx_name = "training_epoch_end"
             training_epoch_end_output = model.training_epoch_end(processed_epoch_output)
 
             if training_epoch_end_output is not None:
                 raise MisconfigurationException(
-                    'training_epoch_end expects a return of None. '
-                    'HINT: remove the return statement in training_epoch_end'
+                    "training_epoch_end expects a return of None. "
+                    "HINT: remove the return statement in training_epoch_end"
                 )
 
             # capture logging
@@ -589,7 +583,7 @@ class TrainLoop:
 
         # call train epoch end hooks
         self._on_train_epoch_end_hook(processed_epoch_output)
-        self.trainer.call_hook('on_epoch_end')
+        self.trainer.call_hook("on_epoch_end")
 
     def _on_train_epoch_end_hook(self, processed_epoch_output) -> None:
         # We cannot rely on Trainer.call_hook because the signatures might be different across
@@ -618,7 +612,8 @@ class TrainLoop:
                     self.warning_cache.warn(
                         "The signature of `ModelHooks.on_train_epoch_end` has changed in v1.3."
                         " `outputs` parameter has been deprecated."
-                        " Support for the old signature will be removed in v1.5", DeprecationWarning
+                        " Support for the old signature will be removed in v1.5",
+                        DeprecationWarning,
                     )
                     model_ref.on_train_epoch_end(processed_epoch_output)
                 else:
@@ -647,11 +642,7 @@ class TrainLoop:
 
         if batch is None:
             self.warning_cache.warn("train_dataloader yielded None. If this was on purpose, ignore this warning...")
-            return AttributeDict(
-                signal=0,
-                grad_norm_dict={},
-                training_step_output_for_epoch_end=batch_outputs,
-            )
+            return AttributeDict(signal=0, grad_norm_dict={}, training_step_output_for_epoch_end=batch_outputs)
 
         # hook
         response = self.trainer.call_hook("on_batch_start")
@@ -749,7 +740,7 @@ class TrainLoop:
             return return_result.loss
 
     def make_closure(self, *closure_args, **closure_kwargs: Any) -> Callable:
-        """ Wraps the training step closure into a partial object which will be called within ``optimizer.step``. """
+        """Wraps the training step closure into a partial object which will be called within ``optimizer.step``."""
         partial_func = partial(self.training_step_and_backward_closure, *closure_args, **closure_kwargs)
         return update_wrapper(partial_func, self.training_step_and_backward_closure)
 
@@ -768,9 +759,8 @@ class TrainLoop:
             context manager with sync behaviour off
 
         """
-        if (
-            isinstance(self.trainer.training_type_plugin, ParallelPlugin)
-            and (self.trainer.lightning_module.automatic_optimization or should_block_sync)
+        if isinstance(self.trainer.training_type_plugin, ParallelPlugin) and (
+            self.trainer.lightning_module.automatic_optimization or should_block_sync
         ):
             with self.trainer.training_type_plugin.block_backward_sync():
                 yield None
@@ -824,7 +814,7 @@ class TrainLoop:
 
     def _check_finite(self, loss: torch.Tensor) -> None:
         if not torch.isfinite(loss).all():
-            raise ValueError(f'The loss returned in `training_step` is {loss}.')
+            raise ValueError(f"The loss returned in `training_step` is {loss}.")
         model = self.trainer.lightning_module
         detect_nan_parameters(model)
 
@@ -852,8 +842,7 @@ class TrainLoop:
             if not finished_accumulation and not finished_epoch:
                 return
         self.trainer.optimizer_connector.update_learning_rates(
-            interval=interval,
-            opt_indices=[opt_idx for opt_idx, _ in self.get_active_optimizers()],
+            interval=interval, opt_indices=[opt_idx for opt_idx, _ in self.get_active_optimizers()]
         )
 
     def increment_accumulated_grad_global_step(self):
@@ -877,7 +866,7 @@ class TrainLoop:
         return not (accumulation_done or is_final_batch)
 
     def _should_check_val_fx(self, batch_idx: int, is_last_batch: bool) -> bool:
-        """ Decide if we should run validation. """
+        """Decide if we should run validation."""
         if not self.trainer.enable_validation:
             return False
 
@@ -886,7 +875,7 @@ class TrainLoop:
             return False
 
         # val_check_batch is inf for iterable datasets with no length defined
-        is_infinite_dataset = self.trainer.val_check_batch == float('inf')
+        is_infinite_dataset = self.trainer.val_check_batch == float("inf")
         if is_last_batch and is_infinite_dataset:
             return True
 
@@ -897,13 +886,13 @@ class TrainLoop:
         is_val_check_batch = is_last_batch
         if isinstance(self.trainer.limit_train_batches, int) and is_infinite_dataset:
             is_val_check_batch = (batch_idx + 1) % self.trainer.limit_train_batches == 0
-        elif self.trainer.val_check_batch != float('inf'):
+        elif self.trainer.val_check_batch != float("inf"):
             is_val_check_batch = (batch_idx + 1) % self.trainer.val_check_batch == 0
         return is_val_check_batch
 
     def _build_kwargs(self, batch, batch_idx, opt_idx, hiddens):
         # enable not needing to add opt_idx to training_step
-        step_kwargs = OrderedDict([('batch', batch), ('batch_idx', batch_idx)])
+        step_kwargs = OrderedDict([("batch", batch), ("batch_idx", batch_idx)])
 
         lightning_module = self.trainer.lightning_module
 
@@ -915,23 +904,24 @@ class TrainLoop:
                     self.warning_cache.warn(
                         "`training_step` hook signature has changed in v1.3."
                         " `optimizer_idx` argument has been removed in case of manual optimization. Support for"
-                        " the old signature will be removed in v1.5", DeprecationWarning
+                        " the old signature will be removed in v1.5",
+                        DeprecationWarning,
                     )
-                step_kwargs['optimizer_idx'] = opt_idx
+                step_kwargs["optimizer_idx"] = opt_idx
             elif not has_opt_idx_in_train_step and self.trainer.lightning_module.automatic_optimization:
                 raise ValueError(
                     f"Your LightningModule defines {len(self.trainer.optimizers)} optimizers but"
-                    ' `training_step` is missing the `optimizer_idx` argument.'
+                    " `training_step` is missing the `optimizer_idx` argument."
                 )
 
         # pass hiddens if using tbptt
         if self._truncated_bptt_enabled():
-            step_kwargs['hiddens'] = hiddens
+            step_kwargs["hiddens"] = hiddens
 
         return step_kwargs
 
     def _truncated_bptt_enabled(self) -> bool:
-        """ Temporary tbptt utilities until this flag is fully migrated to the lightning module. """
+        """Temporary tbptt utilities until this flag is fully migrated to the lightning module."""
         return self._truncated_bptt_steps() > 0
 
     def _truncated_bptt_steps(self) -> int:

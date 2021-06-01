@@ -34,10 +34,8 @@ from tests.helpers.boring_model import BoringModel, RandomDataset
 from tests.helpers.runif import RunIf
 
 
-def decorator_with_arguments(fx_name: str = '', hook_fx_name: str = None) -> Callable:
-
+def decorator_with_arguments(fx_name: str = "", hook_fx_name: str = None) -> Callable:
     def decorator(func: Callable) -> Callable:
-
         def wrapper(self, *args, **kwargs) -> Any:
             # Set information
             self._current_fx_name = fx_name
@@ -107,7 +105,7 @@ def test__logger_connector__epoch_result_store__train(tmpdir):
 
     assert train_results.has_reduced is True
 
-    generated = train_results(fx_name="training_step", dl_idx=0, opt_idx=0, reduced=True)['train_loss_epoch'].item()
+    generated = train_results(fx_name="training_step", dl_idx=0, opt_idx=0, reduced=True)["train_loss_epoch"].item()
     excepted = torch.stack(model.train_losses).mean().item()
     assert generated == excepted
 
@@ -125,7 +123,6 @@ def test__logger_connector__epoch_result_store__train__tbptt(tmpdir):
     y_seq_list = torch.rand(batch_size, sequence_size, 1).tolist()
 
     class MockSeq2SeqDataset(torch.utils.data.Dataset):
-
         def __getitem__(self, i):
             return x_seq, y_seq_list
 
@@ -157,19 +154,16 @@ def test__logger_connector__epoch_result_store__train__tbptt(tmpdir):
 
             self.train_losses.append(loss)
 
-            self.log('a', loss, on_epoch=True)
+            self.log("a", loss, on_epoch=True)
 
-            return {'loss': loss, 'hiddens': self.test_hidden}
+            return {"loss": loss, "hiddens": self.test_hidden}
 
         def on_train_epoch_start(self) -> None:
             self.test_hidden = None
 
         def train_dataloader(self):
             return torch.utils.data.DataLoader(
-                dataset=MockSeq2SeqDataset(),
-                batch_size=batch_size,
-                shuffle=False,
-                sampler=None,
+                dataset=MockSeq2SeqDataset(), batch_size=batch_size, shuffle=False, sampler=None
             )
 
         def training_step_end(self, training_step_output):
@@ -206,11 +200,11 @@ def test__logger_connector__epoch_result_store__train__tbptt(tmpdir):
     # assert reduction did happen
     assert train_results.has_reduced is True
 
-    generated = train_results(fx_name="training_step", dl_idx=0, opt_idx=0, reduced=True)['a_epoch'].item()
+    generated = train_results(fx_name="training_step", dl_idx=0, opt_idx=0, reduced=True)["a_epoch"].item()
     assert generated == torch.stack(model.train_losses).mean().item()
 
 
-@pytest.mark.parametrize('num_dataloaders', [1, 2])
+@pytest.mark.parametrize("num_dataloaders", [1, 2])
 def test__logger_connector__epoch_result_store__test_multi_dataloaders(tmpdir, num_dataloaders):
     """
     Tests that LoggerConnector will properly capture logged information in multi dataloaders scenario
@@ -271,54 +265,54 @@ def test__logger_connector__epoch_result_store__test_multi_dataloaders(tmpdir, n
 
 
 def test_fx_validator(tmpdir):
-    funcs_name = sorted([f for f in dir(Callback) if not f.startswith('_')])
+    funcs_name = sorted([f for f in dir(Callback) if not f.startswith("_")])
 
     callbacks_func = [
-        'on_after_backward',
-        'on_batch_end',
-        'on_batch_start',
-        'on_before_accelerator_backend_setup',
-        'on_before_zero_grad',
-        'on_epoch_end',
-        'on_epoch_start',
-        'on_fit_end',
-        'on_configure_sharded_model',
-        'on_fit_start',
-        'on_init_end',
-        'on_init_start',
-        'on_keyboard_interrupt',
-        'on_load_checkpoint',
-        'on_pretrain_routine_end',
-        'on_pretrain_routine_start',
-        'on_sanity_check_end',
-        'on_sanity_check_start',
-        'on_save_checkpoint',
-        'on_test_batch_end',
-        'on_test_batch_start',
-        'on_test_end',
-        'on_test_epoch_end',
-        'on_test_epoch_start',
-        'on_test_start',
-        'on_train_batch_end',
-        'on_train_batch_start',
-        'on_train_end',
-        'on_train_epoch_end',
-        'on_train_epoch_start',
-        'on_train_start',
-        'on_validation_batch_end',
-        'on_validation_batch_start',
-        'on_validation_end',
-        'on_validation_epoch_end',
-        'on_validation_epoch_start',
-        'on_validation_start',
+        "on_after_backward",
+        "on_batch_end",
+        "on_batch_start",
+        "on_before_accelerator_backend_setup",
+        "on_before_zero_grad",
+        "on_epoch_end",
+        "on_epoch_start",
+        "on_fit_end",
+        "on_configure_sharded_model",
+        "on_fit_start",
+        "on_init_end",
+        "on_init_start",
+        "on_keyboard_interrupt",
+        "on_load_checkpoint",
+        "on_pretrain_routine_end",
+        "on_pretrain_routine_start",
+        "on_sanity_check_end",
+        "on_sanity_check_start",
+        "on_save_checkpoint",
+        "on_test_batch_end",
+        "on_test_batch_start",
+        "on_test_end",
+        "on_test_epoch_end",
+        "on_test_epoch_start",
+        "on_test_start",
+        "on_train_batch_end",
+        "on_train_batch_start",
+        "on_train_end",
+        "on_train_epoch_end",
+        "on_train_epoch_start",
+        "on_train_start",
+        "on_validation_batch_end",
+        "on_validation_batch_start",
+        "on_validation_end",
+        "on_validation_epoch_end",
+        "on_validation_epoch_start",
+        "on_validation_start",
         "on_predict_batch_end",
         "on_predict_batch_start",
         "on_predict_end",
         "on_predict_epoch_end",
         "on_predict_epoch_start",
         "on_predict_start",
-        'setup',
-        'teardown',
+        "setup",
+        "teardown",
     ]
 
     not_supported = [
@@ -349,8 +343,7 @@ def test_fx_validator(tmpdir):
     ]
 
     assert funcs_name == sorted(callbacks_func), (
-        "Detected new callback function. Need to add its logging"
-        " permission to FxValidator and update this test"
+        "Detected new callback function. Need to add its logging" " permission to FxValidator and update this test"
     )
 
     validator = FxValidator()
@@ -366,7 +359,9 @@ def test_fx_validator(tmpdir):
             is_stage or "batch" in func_name or "epoch" in func_name or "grad" in func_name or "backward" in func_name
         )
         allowed = (
-            allowed and "pretrain" not in func_name and "predict" not in func_name
+            allowed
+            and "pretrain" not in func_name
+            and "predict" not in func_name
             and func_name not in ["on_train_end", "on_test_end", "on_validation_end"]
         )
         if allowed:
@@ -389,7 +384,6 @@ def test_epoch_results_cache_dp(tmpdir):
     root_device = torch.device("cuda", 0)
 
     class TestModel(BoringModel):
-
         def training_step(self, *args, **kwargs):
             result = super().training_step(*args, **kwargs)
             self.log("train_loss_epoch", result["loss"], on_step=False, on_epoch=True)
@@ -432,18 +426,13 @@ def test_epoch_results_cache_dp(tmpdir):
 
     model = TestModel()
     trainer = Trainer(
-        default_root_dir=tmpdir,
-        accelerator="dp",
-        gpus=2,
-        limit_train_batches=2,
-        limit_val_batches=2,
-        max_epochs=1,
+        default_root_dir=tmpdir, accelerator="dp", gpus=2, limit_train_batches=2, limit_val_batches=2, max_epochs=1
     )
     trainer.fit(model)
     trainer.test(model, ckpt_path=None)
 
 
-@pytest.mark.parametrize('to_float', [False, True])
+@pytest.mark.parametrize("to_float", [False, True])
 def test_metrics_holder(to_float, tmpdir):
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -456,11 +445,7 @@ def test_metrics_holder(to_float, tmpdir):
     targets = torch.tensor([1], device=device)
     acc = Accuracy().to(device)
     metric_holder = MetricsHolder(to_float=to_float)
-    metric_holder.update({
-        "x": 1,
-        "y": torch.tensor(2),
-        "z": acc(preds, targets),
-    })
+    metric_holder.update({"x": 1, "y": torch.tensor(2), "z": acc(preds, targets)})
     metric_holder.convert(device)
     metrics = metric_holder.metrics
     assert excepted_function(metrics["x"])
@@ -472,10 +457,9 @@ def test_metric_holder_raises(tmpdir):
     """Check that an error is raised when trying to convert non-scalar tensors"""
 
     class TestModel(BoringModel):
-
         def validation_step(self, batch, *args, **kwargs):
             output = self(batch)
-            self.log('test', output)
+            self.log("test", output)
 
         def test_step(self, *args, **kwargs):
             return self.validation_step(*args, **kwargs)
@@ -497,7 +481,6 @@ def test_can_return_tensor_with_more_than_one_element(tmpdir):
     """Ensure {validation,test}_step return values are not included as callback metrics. #6623"""
 
     class TestModel(BoringModel):
-
         def validation_step(self, batch, *args, **kwargs):
             return {"val": torch.tensor([0, 1])}
 
@@ -523,10 +506,9 @@ def test_can_return_tensor_with_more_than_one_element(tmpdir):
 
 
 def test_logging_to_progress_bar_with_reserved_key(tmpdir):
-    """ Test that logging a metric with a reserved name to the progress bar raises a warning. """
+    """Test that logging a metric with a reserved name to the progress bar raises a warning."""
 
     class TestModel(BoringModel):
-
         def training_step(self, *args, **kwargs):
             output = super().training_step(*args, **kwargs)
             self.log("loss", output["loss"], prog_bar=True)
@@ -540,10 +522,9 @@ def test_logging_to_progress_bar_with_reserved_key(tmpdir):
 
 @pytest.mark.parametrize("add_dataloader_idx", [False, True])
 def test_auto_add_dataloader_idx(tmpdir, add_dataloader_idx):
-    """ test that auto_add_dataloader_idx argument works """
+    """test that auto_add_dataloader_idx argument works"""
 
     class TestModel(BoringModel):
-
         def val_dataloader(self):
             dl = super().val_dataloader()
             return [dl, dl]
@@ -567,23 +548,22 @@ def test_auto_add_dataloader_idx(tmpdir, add_dataloader_idx):
 
     # Check that the correct keys exist
     if add_dataloader_idx:
-        assert 'val_loss/dataloader_idx_0' in logged
-        assert 'val_loss/dataloader_idx_1' in logged
+        assert "val_loss/dataloader_idx_0" in logged
+        assert "val_loss/dataloader_idx_1" in logged
     else:
-        assert 'val_loss_custom_naming_0' in logged
-        assert 'val_loss_custom_naming_1' in logged
+        assert "val_loss_custom_naming_0" in logged
+        assert "val_loss_custom_naming_1" in logged
 
 
 def test_metrics_reset(tmpdir):
     """Tests that metrics are reset correctly after the end of the train/val/test epoch."""
 
     class TestModel(LightningModule):
-
         def __init__(self):
             super().__init__()
             self.layer = torch.nn.Linear(32, 1)
 
-            for stage in ['train', 'val', 'test']:
+            for stage in ["train", "val", "test"]:
                 acc = Accuracy()
                 acc.reset = mock.Mock(side_effect=acc.reset)
                 ap = AveragePrecision(num_classes=1, pos_label=1)
@@ -618,13 +598,13 @@ def test_metrics_reset(tmpdir):
             return loss
 
         def training_step(self, batch, batch_idx, *args, **kwargs):
-            return self._step('train', batch)
+            return self._step("train", batch)
 
         def validation_step(self, batch, batch_idx, *args, **kwargs):
-            return self._step('val', batch)
+            return self._step("val", batch)
 
         def test_step(self, batch, batch_idx, *args, **kwargs):
-            return self._step('test', batch)
+            return self._step("test", batch)
 
         def configure_optimizers(self):
             optimizer = torch.optim.SGD(self.layer.parameters(), lr=0.1)
@@ -648,13 +628,13 @@ def test_metrics_reset(tmpdir):
             ap.reset.assert_not_called()
 
         def on_train_epoch_end(self):
-            self._assert_epoch_end('train')
+            self._assert_epoch_end("train")
 
         def on_validation_epoch_end(self):
-            self._assert_epoch_end('val')
+            self._assert_epoch_end("val")
 
         def on_test_epoch_end(self):
-            self._assert_epoch_end('test')
+            self._assert_epoch_end("test")
 
     def _assert_called(model, stage):
         acc = model._modules[f"acc_{stage}"]
@@ -677,11 +657,11 @@ def test_metrics_reset(tmpdir):
     )
 
     trainer.fit(model)
-    _assert_called(model, 'train')
-    _assert_called(model, 'val')
+    _assert_called(model, "train")
+    _assert_called(model, "val")
 
     trainer.validate(model)
-    _assert_called(model, 'val')
+    _assert_called(model, "val")
 
     trainer.test(model)
-    _assert_called(model, 'test')
+    _assert_called(model, "test")

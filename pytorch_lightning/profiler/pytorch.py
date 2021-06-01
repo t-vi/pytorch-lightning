@@ -64,7 +64,7 @@ class RegisterRecordFunction:
     def __init__(self, model: nn.Module) -> None:
         self._model = model
         self._records: Dict[str, record_function] = {}
-        self._handles: Dict[str, List['RemovableHandle']] = {}
+        self._handles: Dict[str, List["RemovableHandle"]] = {}
 
     def _start_recording_forward(self, _: nn.Module, input: Tensor, record_name: str) -> Tensor:
         record = record_function(record_name)
@@ -167,7 +167,7 @@ class ScheduleWrapper:
             return self._predict_step_reached_end
         return False
 
-    def __call__(self, num_step: int) -> 'ProfilerAction':
+    def __call__(self, num_step: int) -> "ProfilerAction":
         # ignore the provided input. Keep internal state instead.
         if self.has_finished:
             return ProfilerAction.NONE
@@ -196,12 +196,7 @@ class PyTorchProfiler(BaseProfiler):
         "test_step",
         "predict_step",
     }
-    STEP_FUNCTIONS = {
-        "training_step_and_backward",
-        "validation_step",
-        "test_step",
-        "predict_step",
-    }
+    STEP_FUNCTIONS = {"training_step_and_backward", "validation_step", "test_step", "predict_step"}
     AVAILABLE_SORT_KEYS = {
         "cpu_time",
         "cuda_time",
@@ -213,12 +208,7 @@ class PyTorchProfiler(BaseProfiler):
         "self_cuda_memory_usage",
         "count",
     }
-    START_RECORD_FUNCTIONS = {
-        'on_fit_start',
-        'on_validation_start',
-        'on_test_start',
-        'on_predict_start',
-    }
+    START_RECORD_FUNCTIONS = {"on_fit_start", "on_validation_start", "on_test_start", "on_predict_start"}
 
     def __init__(
         self,
@@ -300,8 +290,8 @@ class PyTorchProfiler(BaseProfiler):
         self._profiler_kwargs = profiler_kwargs
 
         self.profiler: Optional[_PROFILER] = None
-        self.function_events: Optional['EventList'] = None
-        self._lightning_module: Optional['LightningModule'] = None  # set by ProfilerConnector
+        self.function_events: Optional["EventList"] = None
+        self._lightning_module: Optional["LightningModule"] = None  # set by ProfilerConnector
         self._register: Optional[RegisterRecordFunction] = None
         self._parent_profiler: Optional[_PROFILER] = None
         self._recording_map: Dict[str, record_function] = {}
@@ -341,9 +331,7 @@ class PyTorchProfiler(BaseProfiler):
         self._profiler_kwargs["with_stack"] = with_stack
 
     def __deprecation_check(
-        self,
-        profiled_functions: Optional[List[str]],
-        record_functions: Optional[Set[str]],
+        self, profiled_functions: Optional[List[str]], record_functions: Optional[Set[str]]
     ) -> Set[str]:
         if record_functions is None:
             record_functions = set()
@@ -351,7 +339,8 @@ class PyTorchProfiler(BaseProfiler):
         if profiled_functions is not None:
             rank_zero_warn(
                 "`PyTorchProfiler.profiled_functions` has been renamed to"
-                " `record_functions` in v1.3 and will be removed in v1.5", DeprecationWarning
+                " `record_functions` in v1.3 and will be removed in v1.5",
+                DeprecationWarning,
             )
             if not record_functions:
                 record_functions |= set(profiled_functions)
@@ -369,7 +358,7 @@ class PyTorchProfiler(BaseProfiler):
             # Those schedule defaults allow the profiling overhead to be negligible over training time.
             return torch.profiler.schedule(wait=1, warmup=1, active=3)
 
-    def _default_activities(self) -> List['ProfilerActivity']:
+    def _default_activities(self) -> List["ProfilerActivity"]:
         activities = []
         if not _KINETO_AVAILABLE:
             return activities
@@ -405,7 +394,8 @@ class PyTorchProfiler(BaseProfiler):
                 self._register.__enter__()
 
         if (
-            self.profiler is not None and action_name in self._record_functions
+            self.profiler is not None
+            and action_name in self._record_functions
             and action_name not in self._recording_map
         ):
             recording = record_function(action_name)
@@ -454,7 +444,7 @@ class PyTorchProfiler(BaseProfiler):
 
         if self._export_to_chrome and not _KINETO_AVAILABLE:
             filename = f"{self.local_rank}_trace.json"
-            path_to_trace = (filename if self.dirpath is None else os.path.join(self.dirpath, filename))
+            path_to_trace = filename if self.dirpath is None else os.path.join(self.dirpath, filename)
             self.function_events.export_chrome_trace(path_to_trace)
 
         data = self.function_events.key_averages(group_by_input_shapes=self._group_by_input_shapes)

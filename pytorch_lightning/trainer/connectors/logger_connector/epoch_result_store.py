@@ -234,7 +234,7 @@ class EpochResultStore:
         epoch_result_store.cache_result()
     """
 
-    def __init__(self, trainer: 'pl.Trainer') -> None:
+    def __init__(self, trainer: "pl.Trainer") -> None:
         self.trainer = proxy(trainer)
         self._internals = {}
         self.reset()
@@ -255,9 +255,10 @@ class EpochResultStore:
             "opt_idx": self._opt_idx or 0,
             "split_idx": self._split_idx or 0,
             "type": (
-                ResultStoreType.INSIDE_BATCH_TRAIN_LOOP if self._opt_idx is not None and self._split_idx is not None
+                ResultStoreType.INSIDE_BATCH_TRAIN_LOOP
+                if self._opt_idx is not None and self._split_idx is not None
                 else ResultStoreType.OUTSIDE_BATCH_TRAIN_LOOP
-            )
+            ),
         }
 
     def reset_model(self):

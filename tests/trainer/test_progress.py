@@ -70,7 +70,7 @@ def test_loop_progress_increment_epoch():
 
 
 def test_loop_progress_increment_sequence():
-    """ Test sequences for incrementing batches reads and epochs. """
+    """Test sequences for incrementing batches reads and epochs."""
     p = LoopProgress(batch=Progress(total=Tracker(started=None)))
 
     p.batch.increment_ready()

@@ -47,10 +47,9 @@ def test_mc_called(tmpdir):
     assert len(trainer.dev_debugger.checkpoint_callback_history) == 0
 
 
-@mock.patch('torch.save')
+@mock.patch("torch.save")
 @pytest.mark.parametrize(
-    ['epochs', 'val_check_interval', 'expected'],
-    [(1, 1.0, 1), (2, 1.0, 2), (1, 0.25, 4), (2, 0.3, 7)],
+    ["epochs", "val_check_interval", "expected"], [(1, 1.0, 1), (2, 1.0, 2), (1, 0.25, 4), (2, 0.3, 7)]
 )
 def test_default_checkpoint_freq(save_mock, tmpdir, epochs: int, val_check_interval: float, expected: int):
 
@@ -68,17 +67,12 @@ def test_default_checkpoint_freq(save_mock, tmpdir, epochs: int, val_check_inter
     assert save_mock.call_count == expected
 
 
-@mock.patch('torch.save')
-@pytest.mark.parametrize(['k', 'epochs', 'val_check_interval', 'expected'], [
-    (1, 1, 1.0, 1),
-    (2, 2, 1.0, 2),
-    (2, 1, 0.25, 4),
-    (2, 2, 0.3, 7),
-])
+@mock.patch("torch.save")
+@pytest.mark.parametrize(
+    ["k", "epochs", "val_check_interval", "expected"], [(1, 1, 1.0, 1), (2, 2, 1.0, 2), (2, 1, 0.25, 4), (2, 2, 0.3, 7)]
+)
 def test_top_k(save_mock, tmpdir, k: int, epochs: int, val_check_interval: float, expected: int):
-
     class TestModel(BoringModel):
-
         def __init__(self):
             super().__init__()
             self.last_coeff = 10.0
@@ -87,17 +81,17 @@ def test_top_k(save_mock, tmpdir, k: int, epochs: int, val_check_interval: float
             loss = self.step(torch.ones(32))
             loss = loss / (loss + 0.0000001)
             loss += self.last_coeff
-            self.log('my_loss', loss)
+            self.log("my_loss", loss)
             self.last_coeff *= 0.999
             return loss
 
     model = TestModel()
     trainer = Trainer(
-        callbacks=[callbacks.ModelCheckpoint(dirpath=tmpdir, monitor='my_loss', save_top_k=k)],
+        callbacks=[callbacks.ModelCheckpoint(dirpath=tmpdir, monitor="my_loss", save_top_k=k)],
         default_root_dir=tmpdir,
         max_epochs=epochs,
         weights_summary=None,
-        val_check_interval=val_check_interval
+        val_check_interval=val_check_interval,
     )
     trainer.fit(model)
 
@@ -105,31 +99,29 @@ def test_top_k(save_mock, tmpdir, k: int, epochs: int, val_check_interval: float
     assert save_mock.call_count == expected
 
 
-@mock.patch('torch.save')
+@mock.patch("torch.save")
 @RunIf(special=True, min_gpus=2)
-@pytest.mark.parametrize(['k', 'epochs', 'val_check_interval', 'expected'], [(1, 1, 1.0, 1), (2, 2, 0.3, 5)])
+@pytest.mark.parametrize(["k", "epochs", "val_check_interval", "expected"], [(1, 1, 1.0, 1), (2, 2, 0.3, 5)])
 def test_top_k_ddp(save_mock, tmpdir, k, epochs, val_check_interval, expected):
-
     class TestModel(BoringModel):
-
         def training_step(self, batch, batch_idx):
             local_rank = int(os.getenv("LOCAL_RANK"))
-            self.log('my_loss', batch_idx * (1 + local_rank), on_epoch=True)
+            self.log("my_loss", batch_idx * (1 + local_rank), on_epoch=True)
             return super().training_step(batch, batch_idx)
 
         def training_epoch_end(self, outputs) -> None:
             local_rank = int(os.getenv("LOCAL_RANK"))
             if self.trainer.is_global_zero:
-                self.log('my_loss_2', (1 + local_rank), on_epoch=True)
+                self.log("my_loss_2", (1 + local_rank), on_epoch=True)
             data = str(self.global_rank)
-            obj = [[data], (data, ), set(data)]
+            obj = [[data], (data,), set(data)]
             out = self.trainer.training_type_plugin.broadcast(obj)
-            assert obj == [[str(self.global_rank)], (str(self.global_rank), ), set(str(self.global_rank))]
-            assert out == [['0'], ('0', ), set('0')]
+            assert obj == [[str(self.global_rank)], (str(self.global_rank),), set(str(self.global_rank))]
+            assert out == [["0"], ("0",), set("0")]
 
     model = TestModel()
     trainer = Trainer(
-        callbacks=[callbacks.ModelCheckpoint(dirpath=tmpdir, monitor='my_loss_step', save_top_k=k, mode="max")],
+        callbacks=[callbacks.ModelCheckpoint(dirpath=tmpdir, monitor="my_loss_step", save_top_k=k, mode="max")],
         default_root_dir=tmpdir,
         progress_bar_refresh_rate=0,
         max_epochs=epochs,

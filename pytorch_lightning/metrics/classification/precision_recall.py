@@ -20,7 +20,6 @@ from pytorch_lightning.metrics.utils import deprecated_metrics
 
 
 class Precision(_Precision):
-
     @deprecated_metrics(target=_Precision)
     def __init__(
         self,
@@ -43,12 +42,23 @@ class Precision(_Precision):
         .. deprecated::
             Use :class:`~torchmetrics.Precision`. Will be removed in v1.5.0.
         """
-        _ = num_classes, threshold, average, multilabel, mdmc_average, ignore_index, top_k, is_multiclass, \
-            compute_on_step, dist_sync_on_step, process_group, dist_sync_fn
+        _ = (
+            num_classes,
+            threshold,
+            average,
+            multilabel,
+            mdmc_average,
+            ignore_index,
+            top_k,
+            is_multiclass,
+            compute_on_step,
+            dist_sync_on_step,
+            process_group,
+            dist_sync_fn,
+        )
 
 
 class Recall(_Recall):
-
     @deprecated_metrics(target=_Recall)
     def __init__(
         self,

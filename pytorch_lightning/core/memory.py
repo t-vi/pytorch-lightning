@@ -112,12 +112,12 @@ class LayerSummary(object):
 
     @property
     def layer_type(self) -> str:
-        """ Returns the class name of the module. """
+        """Returns the class name of the module."""
         return str(self._module.__class__.__name__)
 
     @property
     def num_parameters(self) -> int:
-        """ Returns the number of parameters in this module. """
+        """Returns the number of parameters in this module."""
         return sum(np.prod(p.shape) for p in self._module.parameters())
 
 
@@ -245,7 +245,7 @@ class ModelSummary(object):
         return summary
 
     def _forward_example_input(self) -> None:
-        """ Run the example input through each layer to get input- and output sizes. """
+        """Run the example input through each layer to get input- and output sizes."""
         model = self._model
         trainer = self._model.trainer
 
@@ -346,7 +346,7 @@ def _format_summary_table(total_parameters: int, trainable_parameters: int, mode
 
 
 def get_memory_profile(mode: str) -> Union[Dict[str, int], Dict[int, int]]:
-    """ Get a profile of the current memory usage.
+    """Get a profile of the current memory usage.
 
     Args:
         mode: There are two modes:
@@ -432,7 +432,7 @@ def get_human_readable_count(number: int) -> str:
     num_groups = int(np.ceil(num_digits / 3))
     num_groups = min(num_groups, len(labels))  # don't abbreviate beyond trillions
     shift = -3 * (num_groups - 1)
-    number = number * (10**shift)
+    number = number * (10 ** shift)
     index = num_groups - 1
     if index < 1 or number >= 100:
         return f"{int(number):,d} {labels[index]}"

@@ -23,8 +23,9 @@ import torch.multiprocessing as mp
 
 @pytest.fixture(scope="function", autouse=True)
 def preserve_global_rank_variable():
-    """ Ensures that the rank_zero_only.rank global variable gets reset in each test. """
+    """Ensures that the rank_zero_only.rank global variable gets reset in each test."""
     from pytorch_lightning.utilities.distributed import rank_zero_only
+
     rank = getattr(rank_zero_only, "rank", None)
     yield
     if rank is not None:
@@ -33,7 +34,7 @@ def preserve_global_rank_variable():
 
 @pytest.fixture(scope="function", autouse=True)
 def restore_env_variables():
-    """ Ensures that environment variables set during the test do not leak out. """
+    """Ensures that environment variables set during the test do not leak out."""
     env_backup = os.environ.copy()
     yield
     # restore environment as it was before running the test
@@ -66,7 +67,6 @@ def tmpdir_server(tmpdir):
         # so we have to hack it like this
 
         class Handler(SimpleHTTPRequestHandler):
-
             def translate_path(self, path):
                 # get the path from cwd
                 path = super().translate_path(path)
@@ -82,7 +82,7 @@ def tmpdir_server(tmpdir):
         class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
             daemon_threads = True
 
-    with ThreadingHTTPServer(('localhost', 0), Handler) as server:
+    with ThreadingHTTPServer(("localhost", 0), Handler) as server:
         server_thread = threading.Thread(target=server.serve_forever)
         # Exit the server thread when the main thread terminates
         server_thread.daemon = True

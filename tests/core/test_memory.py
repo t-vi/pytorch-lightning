@@ -24,7 +24,7 @@ from tests.helpers.runif import RunIf
 
 
 class EmptyModule(LightningModule):
-    """ A module that has no layers """
+    """A module that has no layers"""
 
     def __init__(self):
         super().__init__()
@@ -32,11 +32,11 @@ class EmptyModule(LightningModule):
         self.example_input_array = torch.zeros(1, 2, 3, 4, 5)
 
     def forward(self, *args, **kwargs):
-        return {'loss': self.parameter.sum()}
+        return {"loss": self.parameter.sum()}
 
 
 class PreCalculatedModel(BoringModel):
-    """ A model with precalculated total params size in MB for FP16 and FP32. """
+    """A model with precalculated total params size in MB for FP16 and FP32."""
 
     def __init__(self, precision: int = 32):
         super().__init__()
@@ -53,7 +53,7 @@ class PreCalculatedModel(BoringModel):
 
 
 class UnorderedModel(LightningModule):
-    """ A model in which the layers not defined in order of execution """
+    """A model in which the layers not defined in order of execution"""
 
     def __init__(self):
         super().__init__()
@@ -76,7 +76,7 @@ class UnorderedModel(LightningModule):
 
 
 class MixedDtypeModel(LightningModule):
-    """ The parameters and inputs of this model have different dtypes. """
+    """The parameters and inputs of this model have different dtypes."""
 
     def __init__(self):
         super().__init__()
@@ -89,7 +89,7 @@ class MixedDtypeModel(LightningModule):
 
 
 class PartialScriptModel(LightningModule):
-    """ A model which contains scripted layers. """
+    """A model which contains scripted layers."""
 
     def __init__(self):
         super().__init__()
@@ -102,17 +102,17 @@ class PartialScriptModel(LightningModule):
 
 
 def test_invalid_weights_summmary():
-    """ Test that invalid value for weights_summary raises an error. """
-    with pytest.raises(MisconfigurationException, match='`mode` can be None, .* got temp'):
-        UnorderedModel().summarize(mode='temp')
+    """Test that invalid value for weights_summary raises an error."""
+    with pytest.raises(MisconfigurationException, match="`mode` can be None, .* got temp"):
+        UnorderedModel().summarize(mode="temp")
 
-    with pytest.raises(MisconfigurationException, match='`weights_summary` can be None, .* got temp'):
-        Trainer(weights_summary='temp')
+    with pytest.raises(MisconfigurationException, match="`weights_summary` can be None, .* got temp"):
+        Trainer(weights_summary="temp")
 
 
-@pytest.mark.parametrize('mode', [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
+@pytest.mark.parametrize("mode", [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
 def test_empty_model_summary_shapes(mode: ModelSummary):
-    """ Test that the summary works for models that have no submodules. """
+    """Test that the summary works for models that have no submodules."""
     model = EmptyModule()
     summary = model.summarize(mode=mode)
     assert summary.in_sizes == []
@@ -121,52 +121,33 @@ def test_empty_model_summary_shapes(mode: ModelSummary):
 
 
 @RunIf(min_gpus=1)
-@pytest.mark.parametrize('mode', [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
-@pytest.mark.parametrize(['device'], [
-    pytest.param(torch.device('cpu')),
-    pytest.param(torch.device('cuda', 0)),
-    pytest.param(torch.device('cuda', 0)),
-])
+@pytest.mark.parametrize("mode", [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
+@pytest.mark.parametrize(
+    ["device"],
+    [pytest.param(torch.device("cpu")), pytest.param(torch.device("cuda", 0)), pytest.param(torch.device("cuda", 0))],
+)
 def test_linear_model_summary_shapes(device, mode):
-    """ Test that the model summary correctly computes the input- and output shapes. """
+    """Test that the model summary correctly computes the input- and output shapes."""
     model = UnorderedModel().to(device)
     model.train()
     summary = model.summarize(mode=mode)
-    assert summary.in_sizes == [
-        [2, 10],  # layer 2
-        [2, 7],  # combine
-        [2, 3],  # layer 1
-        [2, 7],  # relu
-        UNKNOWN_SIZE,
-    ]
-    assert summary.out_sizes == [
-        [2, 2],  # layer 2
-        [2, 9],  # combine
-        [2, 5],  # layer 1
-        [2, 7],  # relu
-        UNKNOWN_SIZE,
-    ]
+    assert summary.in_sizes == [[2, 10], [2, 7], [2, 3], [2, 7], UNKNOWN_SIZE]  # layer 2  # combine  # layer 1  # relu
+    assert summary.out_sizes == [[2, 2], [2, 9], [2, 5], [2, 7], UNKNOWN_SIZE]  # layer 2  # combine  # layer 1  # relu
     assert model.training
     assert model.device == device
 
 
 def test_mixed_dtype_model_summary():
-    """ Test that the model summary works with models that have mixed input- and parameter dtypes. """
+    """Test that the model summary works with models that have mixed input- and parameter dtypes."""
     model = MixedDtypeModel()
     summary = model.summarize()
-    assert summary.in_sizes == [
-        [2, 3],  # embed
-        [2, 3, 20],  # reduce
-    ]
-    assert summary.out_sizes == [
-        [2, 3, 20],  # embed
-        [2, 3, 1],  # reduce
-    ]
+    assert summary.in_sizes == [[2, 3], [2, 3, 20]]  # embed  # reduce
+    assert summary.out_sizes == [[2, 3, 20], [2, 3, 1]]  # embed  # reduce
 
 
-@pytest.mark.parametrize('mode', [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
+@pytest.mark.parametrize("mode", [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
 def test_hooks_removed_after_summarize(mode):
-    """ Test that all hooks were properly removed after summary, even ones that were not run. """
+    """Test that all hooks were properly removed after summary, even ones that were not run."""
     model = UnorderedModel()
     summary = ModelSummary(model, mode=mode)
     # hooks should be removed
@@ -175,9 +156,9 @@ def test_hooks_removed_after_summarize(mode):
         assert handle.id not in handle.hooks_dict_ref()
 
 
-@pytest.mark.parametrize('mode', [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
+@pytest.mark.parametrize("mode", [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
 def test_rnn_summary_shapes(mode):
-    """ Test that the model summary works for RNNs. """
+    """Test that the model summary works for RNNs."""
     model = ParityModuleRNN()
 
     b = 3
@@ -189,19 +170,13 @@ def test_rnn_summary_shapes(mode):
     model.example_input_array = torch.zeros(b, t, 10)
 
     summary = model.summarize(mode=mode)
-    assert summary.in_sizes == [
-        [b, t, i],  # rnn
-        [b, t, h],  # linear
-    ]
-    assert summary.out_sizes == [
-        [[b, t, h], [[1, b, h], [1, b, h]]],  # rnn
-        [b, t, o]  # linear
-    ]
+    assert summary.in_sizes == [[b, t, i], [b, t, h]]  # rnn  # linear
+    assert summary.out_sizes == [[[b, t, h], [[1, b, h], [1, b, h]]], [b, t, o]]  # rnn  # linear
 
 
-@pytest.mark.parametrize('mode', [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
+@pytest.mark.parametrize("mode", [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
 def test_summary_parameter_count(mode):
-    """ Test that the summary counts the number of parameters in every submodule. """
+    """Test that the summary counts the number of parameters in every submodule."""
     model = UnorderedModel()
     summary = model.summarize(mode=mode)
     assert summary.param_nums == [
@@ -213,21 +188,15 @@ def test_summary_parameter_count(mode):
     ]
 
 
-@pytest.mark.parametrize('mode', [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
+@pytest.mark.parametrize("mode", [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
 def test_summary_layer_types(mode):
-    """ Test that the summary displays the layer names correctly. """
+    """Test that the summary displays the layer names correctly."""
     model = UnorderedModel()
     summary = model.summarize(mode=mode)
-    assert summary.layer_types == [
-        'Linear',
-        'Linear',
-        'Linear',
-        'ReLU',
-        'Conv2d',
-    ]
+    assert summary.layer_types == ["Linear", "Linear", "Linear", "ReLU", "Conv2d"]
 
 
-@pytest.mark.parametrize('mode', [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
+@pytest.mark.parametrize("mode", [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
 def test_summary_with_scripted_modules(mode):
     model = PartialScriptModel()
     summary = model.summarize(mode=mode)
@@ -236,26 +205,27 @@ def test_summary_with_scripted_modules(mode):
     assert summary.out_sizes == [UNKNOWN_SIZE, [2, 2]]
 
 
-@pytest.mark.parametrize('mode', [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
-@pytest.mark.parametrize(['example_input', 'expected_size'], [
-    pytest.param([], UNKNOWN_SIZE),
-    pytest.param((1, 2, 3), [UNKNOWN_SIZE] * 3),
-    pytest.param(torch.tensor(0), UNKNOWN_SIZE),
-    pytest.param(dict(tensor=torch.zeros(1, 2, 3)), UNKNOWN_SIZE),
-    pytest.param(torch.zeros(2, 3, 4), [2, 3, 4]),
-    pytest.param([torch.zeros(2, 3), torch.zeros(4, 5)], [[2, 3], [4, 5]]),
-    pytest.param((torch.zeros(2, 3), torch.zeros(4, 5)), [[2, 3], [4, 5]]),
-])
+@pytest.mark.parametrize("mode", [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
+@pytest.mark.parametrize(
+    ["example_input", "expected_size"],
+    [
+        pytest.param([], UNKNOWN_SIZE),
+        pytest.param((1, 2, 3), [UNKNOWN_SIZE] * 3),
+        pytest.param(torch.tensor(0), UNKNOWN_SIZE),
+        pytest.param(dict(tensor=torch.zeros(1, 2, 3)), UNKNOWN_SIZE),
+        pytest.param(torch.zeros(2, 3, 4), [2, 3, 4]),
+        pytest.param([torch.zeros(2, 3), torch.zeros(4, 5)], [[2, 3], [4, 5]]),
+        pytest.param((torch.zeros(2, 3), torch.zeros(4, 5)), [[2, 3], [4, 5]]),
+    ],
+)
 def test_example_input_array_types(example_input, expected_size, mode):
-    """ Test the types of example inputs supported for display in the summary. """
+    """Test the types of example inputs supported for display in the summary."""
 
     class DummyModule(nn.Module):
-
         def forward(self, *args, **kwargs):
             return None
 
     class DummyLightningModule(LightningModule):
-
         def __init__(self):
             super().__init__()
             self.layer = DummyModule()
@@ -270,17 +240,17 @@ def test_example_input_array_types(example_input, expected_size, mode):
     assert summary.in_sizes == [expected_size]
 
 
-@pytest.mark.parametrize('mode', [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
+@pytest.mark.parametrize("mode", [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
 def test_model_size(mode):
-    """ Test model size is calculated correctly. """
+    """Test model size is calculated correctly."""
     model = PreCalculatedModel()
     summary = model.summarize(mode=mode)
     assert model.pre_calculated_model_size == summary.model_size
 
 
-@pytest.mark.parametrize('mode', [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
+@pytest.mark.parametrize("mode", [ModelSummary.MODE_FULL, ModelSummary.MODE_TOP])
 def test_empty_model_size(mode):
-    """ Test empty model size is zero. """
+    """Test empty model size is zero."""
     model = EmptyModule()
     summary = model.summarize(mode=mode)
     assert 0.0 == summary.model_size
@@ -288,17 +258,11 @@ def test_empty_model_size(mode):
 
 @RunIf(min_gpus=1, amp_native=True)
 def test_model_size_precision(tmpdir):
-    """ Test model size for half and full precision. """
+    """Test model size for half and full precision."""
     model = PreCalculatedModel()
 
     # fit model
-    trainer = Trainer(
-        default_root_dir=tmpdir,
-        gpus=1,
-        max_steps=1,
-        max_epochs=1,
-        precision=32,
-    )
+    trainer = Trainer(default_root_dir=tmpdir, gpus=1, max_steps=1, max_epochs=1, precision=32)
     trainer.fit(model)
     summary = model.summarize()
     assert model.pre_calculated_model_size == summary.model_size

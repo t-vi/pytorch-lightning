@@ -53,6 +53,6 @@ class TrainerTrainingTricksMixin(ABC):
         )
         # check if loss is nan
         if not torch.isfinite(loss).all():
-            raise ValueError('The loss returned in `training_step` is nan or inf.')
+            raise ValueError("The loss returned in `training_step` is nan or inf.")
         model = self.lightning_module
         detect_nan_parameters(model)

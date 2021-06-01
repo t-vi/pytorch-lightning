@@ -43,25 +43,20 @@ def test_gpu_stats_monitor(tmpdir):
         log_every_n_steps=log_every_n_steps,
         gpus=1,
         callbacks=[gpu_stats],
-        logger=logger
+        logger=logger,
     )
 
     trainer.fit(model)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
 
     path_csv = os.path.join(logger.log_dir, ExperimentWriter.NAME_METRICS_FILE)
-    met_data = np.genfromtxt(path_csv, delimiter=',', names=True, deletechars='', replace_space=' ')
+    met_data = np.genfromtxt(path_csv, delimiter=",", names=True, deletechars="", replace_space=" ")
 
-    batch_time_data = met_data['batch_time/intra_step (ms)']
+    batch_time_data = met_data["batch_time/intra_step (ms)"]
     batch_time_data = batch_time_data[~np.isnan(batch_time_data)]
     assert batch_time_data.shape[0] == trainer.global_step // log_every_n_steps
 
-    fields = [
-        'utilization.gpu',
-        'memory.used',
-        'memory.free',
-        'utilization.memory',
-    ]
+    fields = ["utilization.gpu", "memory.used", "memory.free", "utilization.memory"]
 
     for f in fields:
         assert any([f in h for h in met_data.dtype.names])
@@ -72,7 +67,7 @@ def test_gpu_stats_monitor_cpu_machine(tmpdir):
     """
     Test GPUStatsMonitor on CPU machine.
     """
-    with pytest.raises(MisconfigurationException, match='NVIDIA driver is not installed'):
+    with pytest.raises(MisconfigurationException, match="NVIDIA driver is not installed"):
         GPUStatsMonitor()
 
 
@@ -84,15 +79,9 @@ def test_gpu_stats_monitor_no_logger(tmpdir):
     model = BoringModel()
     gpu_stats = GPUStatsMonitor()
 
-    trainer = Trainer(
-        default_root_dir=tmpdir,
-        callbacks=[gpu_stats],
-        max_epochs=1,
-        gpus=1,
-        logger=False,
-    )
+    trainer = Trainer(default_root_dir=tmpdir, callbacks=[gpu_stats], max_epochs=1, gpus=1, logger=False)
 
-    with pytest.raises(MisconfigurationException, match='Trainer that has no logger.'):
+    with pytest.raises(MisconfigurationException, match="Trainer that has no logger."):
         trainer.fit(model)
 
 
@@ -104,18 +93,13 @@ def test_gpu_stats_monitor_no_gpu_warning(tmpdir):
     model = BoringModel()
     gpu_stats = GPUStatsMonitor()
 
-    trainer = Trainer(
-        default_root_dir=tmpdir,
-        callbacks=[gpu_stats],
-        max_steps=1,
-        gpus=None,
-    )
+    trainer = Trainer(default_root_dir=tmpdir, callbacks=[gpu_stats], max_steps=1, gpus=None)
 
-    with pytest.raises(MisconfigurationException, match='not running on GPU'):
+    with pytest.raises(MisconfigurationException, match="not running on GPU"):
         trainer.fit(model)
 
 
 def test_gpu_stats_monitor_parse_gpu_stats():
-    logs = GPUStatsMonitor._parse_gpu_stats('1,2', [[3, 4, 5], [6, 7]], [('gpu', 'a'), ('memory', 'b')])
-    expected = {'gpu_id: 1/gpu (a)': 3, 'gpu_id: 1/memory (b)': 4, 'gpu_id: 2/gpu (a)': 6, 'gpu_id: 2/memory (b)': 7}
+    logs = GPUStatsMonitor._parse_gpu_stats("1,2", [[3, 4, 5], [6, 7]], [("gpu", "a"), ("memory", "b")])
+    expected = {"gpu_id: 1/gpu (a)": 3, "gpu_id: 1/memory (b)": 4, "gpu_id: 2/gpu (a)": 6, "gpu_id: 2/memory (b)": 7}
     assert logs == expected

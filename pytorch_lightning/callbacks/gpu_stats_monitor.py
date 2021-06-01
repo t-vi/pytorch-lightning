@@ -83,35 +83,37 @@ class GPUStatsMonitor(Callback):
         intra_step_time: bool = False,
         inter_step_time: bool = False,
         fan_speed: bool = False,
-        temperature: bool = False
+        temperature: bool = False,
     ):
         super().__init__()
 
-        if shutil.which('nvidia-smi') is None:
+        if shutil.which("nvidia-smi") is None:
             raise MisconfigurationException(
-                'Cannot use GPUStatsMonitor callback because NVIDIA driver is not installed.'
+                "Cannot use GPUStatsMonitor callback because NVIDIA driver is not installed."
             )
 
-        self._log_stats = AttributeDict({
-            'memory_utilization': memory_utilization,
-            'gpu_utilization': gpu_utilization,
-            'intra_step_time': intra_step_time,
-            'inter_step_time': inter_step_time,
-            'fan_speed': fan_speed,
-            'temperature': temperature
-        })
+        self._log_stats = AttributeDict(
+            {
+                "memory_utilization": memory_utilization,
+                "gpu_utilization": gpu_utilization,
+                "intra_step_time": intra_step_time,
+                "inter_step_time": inter_step_time,
+                "fan_speed": fan_speed,
+                "temperature": temperature,
+            }
+        )
 
     def on_train_start(self, trainer, pl_module) -> None:
         if not trainer.logger:
-            raise MisconfigurationException('Cannot use GPUStatsMonitor callback with Trainer that has no logger.')
+            raise MisconfigurationException("Cannot use GPUStatsMonitor callback with Trainer that has no logger.")
 
         if trainer._device_type != DeviceType.GPU:
             raise MisconfigurationException(
-                'You are using GPUStatsMonitor but are not running on GPU'
-                f' since gpus attribute in Trainer is set to {trainer.gpus}.'
+                "You are using GPUStatsMonitor but are not running on GPU"
+                f" since gpus attribute in Trainer is set to {trainer.gpus}."
             )
 
-        self._gpu_ids = ','.join(map(str, trainer.data_parallel_device_ids))
+        self._gpu_ids = ",".join(map(str, trainer.data_parallel_device_ids))
 
     def on_train_epoch_start(self, trainer, pl_module) -> None:
         self._snap_intra_step_time = None
@@ -131,7 +133,7 @@ class GPUStatsMonitor(Callback):
 
         if self._log_stats.inter_step_time and self._snap_inter_step_time:
             # First log at beginning of second step
-            logs['batch_time/inter_step (ms)'] = (time.time() - self._snap_inter_step_time) * 1000
+            logs["batch_time/inter_step (ms)"] = (time.time() - self._snap_inter_step_time) * 1000
 
         trainer.logger.log_metrics(logs, step=trainer.global_step)
 
@@ -150,39 +152,39 @@ class GPUStatsMonitor(Callback):
         logs = self._parse_gpu_stats(self._gpu_ids, gpu_stats, gpu_stat_keys)
 
         if self._log_stats.intra_step_time and self._snap_intra_step_time:
-            logs['batch_time/intra_step (ms)'] = (time.time() - self._snap_intra_step_time) * 1000
+            logs["batch_time/intra_step (ms)"] = (time.time() - self._snap_intra_step_time) * 1000
 
         trainer.logger.log_metrics(logs, step=trainer.global_step)
 
     def _get_gpu_stats(self, queries: List[str]) -> List[List[float]]:
         """Run nvidia-smi to get the gpu stats"""
-        gpu_query = ','.join(queries)
-        format = 'csv,nounits,noheader'
+        gpu_query = ",".join(queries)
+        format = "csv,nounits,noheader"
         result = subprocess.run(
-            [shutil.which('nvidia-smi'), f'--query-gpu={gpu_query}', f'--format={format}', f'--id={self._gpu_ids}'],
+            [shutil.which("nvidia-smi"), f"--query-gpu={gpu_query}", f"--format={format}", f"--id={self._gpu_ids}"],
             encoding="utf-8",
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,  # for backward compatibility with python version 3.6
-            check=True
+            check=True,
         )
 
         def _to_float(x: str) -> float:
             try:
                 return float(x)
             except ValueError:
-                return 0.
+                return 0.0
 
         stats = result.stdout.strip().split(os.linesep)
-        stats = [[_to_float(x) for x in s.split(', ')] for s in stats]
+        stats = [[_to_float(x) for x in s.split(", ")] for s in stats]
         return stats
 
     @staticmethod
     def _parse_gpu_stats(gpu_ids: str, stats: List[List[float]], keys: List[Tuple[str, str]]) -> Dict[str, float]:
         """Parse the gpu stats into a loggable dict"""
         logs = {}
-        for i, gpu_id in enumerate(gpu_ids.split(',')):
+        for i, gpu_id in enumerate(gpu_ids.split(",")):
             for j, (x, unit) in enumerate(keys):
-                logs[f'gpu_id: {gpu_id}/{x} ({unit})'] = stats[i][j]
+                logs[f"gpu_id: {gpu_id}/{x} ({unit})"] = stats[i][j]
         return logs
 
     def _get_gpu_stat_keys(self) -> List[Tuple[str, str]]:
@@ -190,10 +192,10 @@ class GPUStatsMonitor(Callback):
         stat_keys = []
 
         if self._log_stats.gpu_utilization:
-            stat_keys.append(('utilization.gpu', '%'))
+            stat_keys.append(("utilization.gpu", "%"))
 
         if self._log_stats.memory_utilization:
-            stat_keys.extend([('memory.used', 'MB'), ('memory.free', 'MB'), ('utilization.memory', '%')])
+            stat_keys.extend([("memory.used", "MB"), ("memory.free", "MB"), ("utilization.memory", "%")])
 
         return stat_keys
 
@@ -202,10 +204,10 @@ class GPUStatsMonitor(Callback):
         stat_keys = []
 
         if self._log_stats.fan_speed:
-            stat_keys.append(('fan.speed', '%'))
+            stat_keys.append(("fan.speed", "%"))
 
         if self._log_stats.temperature:
-            stat_keys.extend([('temperature.gpu', '°C'), ('temperature.memory', '°C')])
+            stat_keys.extend([("temperature.gpu", "°C"), ("temperature.memory", "°C")])
 
         return stat_keys
 

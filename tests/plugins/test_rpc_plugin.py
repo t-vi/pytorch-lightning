@@ -25,17 +25,14 @@ from tests.helpers.runif import RunIf
 )
 @mock.patch("torch.cuda.device_count", return_value=2)
 @pytest.mark.parametrize(
-    ["ddp_backend", "gpus", "num_processes"],
-    [("ddp_cpu", None, 2), ("ddp", 2, 0), ("ddp_spawn", 2, 0)],
+    ["ddp_backend", "gpus", "num_processes"], [("ddp_cpu", None, 2), ("ddp", 2, 0), ("ddp_spawn", 2, 0)]
 )
 @RunIf(rpc=True)
 def test_rpc_choice(tmpdir, ddp_backend, gpus, num_processes):
-
     class CB(Callback):
-
         def on_fit_start(self, trainer, pl_module):
             assert isinstance(trainer.training_type_plugin, RPCPlugin)
-            raise RuntimeError('finished plugin check')
+            raise RuntimeError("finished plugin check")
 
     model = BoringModel()
     trainer = Trainer(
@@ -45,15 +42,14 @@ def test_rpc_choice(tmpdir, ddp_backend, gpus, num_processes):
         num_processes=num_processes,
         distributed_backend=ddp_backend,
         callbacks=[CB()],
-        plugins=[RPCPlugin()]
+        plugins=[RPCPlugin()],
     )
 
-    with pytest.raises(RuntimeError, match='finished plugin check'):
+    with pytest.raises(RuntimeError, match="finished plugin check"):
         trainer.fit(model)
 
 
 class CustomRPCPlugin(RPCPlugin):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.rpc_save_model_count = 0
@@ -77,7 +73,7 @@ def test_rpc_function_calls_ddp(tmpdir):
         limit_val_batches=2,
         max_epochs=max_epochs,
         gpus=2,
-        distributed_backend='ddp',
+        distributed_backend="ddp",
         plugins=[plugin],
         default_root_dir=tmpdir,
     )

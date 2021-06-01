@@ -215,7 +215,7 @@ class TrainerProperties(ABC):
         if self.logger is None:
             dirpath = self.default_root_dir
         else:
-            dirpath = getattr(self.logger, 'log_dir' if isinstance(self.logger, TensorBoardLogger) else 'save_dir')
+            dirpath = getattr(self.logger, "log_dir" if isinstance(self.logger, TensorBoardLogger) else "save_dir")
 
         dirpath = self.accelerator.broadcast(dirpath)
         return dirpath
@@ -230,7 +230,7 @@ class TrainerProperties(ABC):
 
     @property
     def slurm_job_id(self) -> Optional[int]:
-        job_id = os.environ.get('SLURM_JOB_ID')
+        job_id = os.environ.get("SLURM_JOB_ID")
         if job_id:
             try:
                 job_id = int(job_id)
@@ -238,7 +238,7 @@ class TrainerProperties(ABC):
                 job_id = None
 
         # in interactive mode, don't make logs use the same job id
-        in_slurm_interactive_mode = os.environ.get('SLURM_JOB_NAME') == 'bash'
+        in_slurm_interactive_mode = os.environ.get("SLURM_JOB_NAME") == "bash"
         if in_slurm_interactive_mode:
             job_id = None
         return job_id
@@ -257,7 +257,10 @@ class TrainerProperties(ABC):
     @property
     def data_parallel(self) -> bool:
         return self._distrib_type in (
-            DistributedType.DP, DistributedType.DDP, DistributedType.DDP_SPAWN, DistributedType.DDP2
+            DistributedType.DP,
+            DistributedType.DDP,
+            DistributedType.DDP_SPAWN,
+            DistributedType.DDP2,
         )
 
     @property
@@ -266,7 +269,7 @@ class TrainerProperties(ABC):
 
     @property
     def progress_bar_dict(self) -> dict:
-        """ Read-only for progress bar metrics. """
+        """Read-only for progress bar metrics."""
         ref_model = self.lightning_module
         ref_model = cast(LightningModule, ref_model)
 
@@ -278,7 +281,8 @@ class TrainerProperties(ABC):
                 f"The progress bar already tracks a metric with the name(s) '{', '.join(duplicates)}' and"
                 f" `self.log('{duplicates[0]}', ..., prog_bar=True)` will overwrite this value. "
                 f" If this is undesired, change the name or override `get_progress_bar_dict()`"
-                f" in `LightingModule`.", UserWarning
+                f" in `LightingModule`.",
+                UserWarning,
             )
         all_metrics = dict(**standard_metrics)
         all_metrics.update(**logged_metrics)
@@ -286,14 +290,14 @@ class TrainerProperties(ABC):
 
     @property
     def disable_validation(self) -> bool:
-        """ Check if validation is disabled during training. """
+        """Check if validation is disabled during training."""
         return not self.enable_validation
 
     @property
     def enable_validation(self) -> bool:
-        """ Check if we should run validation during training. """
+        """Check if we should run validation during training."""
         model_ref = self.lightning_module
-        val_loop_enabled = is_overridden('validation_step', model_ref) and self.limit_val_batches > 0
+        val_loop_enabled = is_overridden("validation_step", model_ref) and self.limit_val_batches > 0
         return val_loop_enabled
 
     @property
@@ -375,12 +379,12 @@ class TrainerProperties(ABC):
         """Returns a list with deprecated Trainer arguments."""
         depr_arg_names = []
         for name, val in cls.__dict__.items():
-            if name.startswith('DEPRECATED') and isinstance(val, (tuple, list)):
+            if name.startswith("DEPRECATED") and isinstance(val, (tuple, list)):
                 depr_arg_names.extend(val)
         return depr_arg_names
 
     @classmethod
-    def from_argparse_args(cls: Type['_T'], args: Union[Namespace, ArgumentParser], **kwargs) -> '_T':
+    def from_argparse_args(cls: Type["_T"], args: Union[Namespace, ArgumentParser], **kwargs) -> "_T":
         return from_argparse_args(cls, args, **kwargs)
 
     @classmethod
@@ -544,4 +548,4 @@ class TrainerProperties(ABC):
 
 
 # Used to represent the concrete type TrainerProperties class methods are called on.
-_T = TypeVar('_T', bound=TrainerProperties)
+_T = TypeVar("_T", bound=TrainerProperties)

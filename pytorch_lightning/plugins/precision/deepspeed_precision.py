@@ -27,7 +27,7 @@ warning_cache = WarningCache()
 
 
 class DeepSpeedPrecisionPlugin(PrecisionPlugin):
-    """ Precision plugin for DeepSpeed integration. """
+    """Precision plugin for DeepSpeed integration."""
 
     def __init__(self, precision: int) -> None:
         super().__init__()
@@ -35,7 +35,7 @@ class DeepSpeedPrecisionPlugin(PrecisionPlugin):
 
     def pre_optimizer_step(
         self,
-        pl_module: 'pl.LightningModule',
+        pl_module: "pl.LightningModule",
         optimizer: Optimizer,
         optimizer_idx: int,
         lambda_closure: Callable,
@@ -54,7 +54,7 @@ class DeepSpeedPrecisionPlugin(PrecisionPlugin):
 
     def backward(
         self,
-        model: 'pl.LightningModule',
+        model: "pl.LightningModule",
         closure_loss: Tensor,
         optimizer: Optimizer,
         opt_idx: int,
@@ -62,7 +62,7 @@ class DeepSpeedPrecisionPlugin(PrecisionPlugin):
         *args: Any,
         **kwargs: Any,
     ) -> Tensor:
-        if is_overridden('backward', model):
+        if is_overridden("backward", model):
             warning_cache.warn(
                 "Overridden backward hook in the LightningModule will be ignored since DeepSpeed handles"
                 "backward logic outside of the LightningModule"

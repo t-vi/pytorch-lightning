@@ -22,7 +22,6 @@ from tests.helpers.boring_model import BoringModel
 
 
 class MultiOptModel(BoringModel):
-
     def configure_optimizers(self):
         opt_a = torch.optim.SGD(self.layer.parameters(), lr=0.001)
         opt_b = torch.optim.SGD(self.layer.parameters(), lr=0.001)
@@ -50,7 +49,6 @@ def test_unbalanced_logging_with_multiple_optimizers(tmpdir):
     model.training_epoch_end = None
 
     class TestCallback(pl.Callback):
-
         def on_train_batch_end(self, trainer, pl_module, output, batch, batch_idx, dl_idx):
             # when this is called, the EpochResultStore state has not been reset yet because we are still
             # "INSIDE_BATCH_TRAIN_LOOP" and the LoggerConnector runs its `on_train_batch_end` after the
@@ -78,7 +76,6 @@ def test_unbalanced_logging_with_multiple_optimizers(tmpdir):
 
 
 def test_multiple_optimizers(tmpdir):
-
     class TestModel(MultiOptModel):
 
         seen = [False, False]
@@ -108,9 +105,7 @@ def test_multiple_optimizers(tmpdir):
 
 
 def test_multiple_optimizers_manual(tmpdir):
-
     class TestModel(MultiOptModel):
-
         def __init__(self):
             super().__init__()
             self.automatic_optimization = False
@@ -142,11 +137,7 @@ def test_multiple_optimizers_manual(tmpdir):
     model.val_dataloader = None
 
     trainer = pl.Trainer(
-        default_root_dir=tmpdir,
-        limit_train_batches=2,
-        max_epochs=1,
-        log_every_n_steps=1,
-        weights_summary=None,
+        default_root_dir=tmpdir, limit_train_batches=2, max_epochs=1, log_every_n_steps=1, weights_summary=None
     )
     trainer.fit(model)
 
@@ -160,13 +151,12 @@ def test_multiple_optimizers_no_opt_idx_argument(tmpdir):
     """
 
     class TestModel(MultiOptModel):
-
         def training_step(self, batch, batch_idx):
             return super().training_step(batch, batch_idx)
 
     trainer = pl.Trainer(default_root_dir=tmpdir, fast_dev_run=2)
 
-    with pytest.raises(ValueError, match='`training_step` is missing the `optimizer_idx`'):
+    with pytest.raises(ValueError, match="`training_step` is missing the `optimizer_idx`"):
         trainer.fit(TestModel())
 
 
@@ -200,15 +190,7 @@ def test_custom_optimizer_step_with_multiple_optimizers(tmpdir):
             # outputs should be an array with an entry per optimizer
             assert len(outputs) == 2
 
-        def optimizer_step(
-            self,
-            epoch,
-            batch_idx,
-            optimizer,
-            optimizer_idx,
-            optimizer_closure,
-            **_,
-        ):
+        def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx, optimizer_closure, **_):
             # update first optimizer every step
             if optimizer_idx == 0:
                 self.optimizer_step_called[optimizer_idx] += 1
@@ -224,11 +206,7 @@ def test_custom_optimizer_step_with_multiple_optimizers(tmpdir):
     model.val_dataloader = None
 
     trainer = pl.Trainer(
-        default_root_dir=tmpdir,
-        limit_train_batches=4,
-        max_epochs=1,
-        log_every_n_steps=1,
-        weights_summary=None,
+        default_root_dir=tmpdir, limit_train_batches=4, max_epochs=1, log_every_n_steps=1, weights_summary=None
     )
     trainer.fit(model)
     assert model.training_step_called == [4, 2]

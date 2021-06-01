@@ -25,7 +25,7 @@ if _TPU_AVAILABLE:
 
 
 class SingleTPUPlugin(SingleDevicePlugin):
-    """ Plugin for training on a single TPU device. """
+    """Plugin for training on a single TPU device."""
 
     def __init__(self, device: int, debug: bool = False):
 

@@ -22,26 +22,25 @@ from torchmetrics import Metric
 
 
 class Result(Dict):
-
     def __init__(self) -> None:
         super().__init__()
-        self['meta'] = {'_internal': {'_reduce_on_epoch': False, 'batch_sizes': []}}
+        self["meta"] = {"_internal": {"_reduce_on_epoch": False, "batch_sizes": []}}
 
     def __getitem__(self, key: Union[str, Any]) -> Any:
         try:
             return super().__getitem__(key)
         except KeyError:
-            return super().__getitem__(f'{key}_step')
+            return super().__getitem__(f"{key}_step")
 
     def __getattr__(self, key: str) -> Any:
         try:
-            if key == 'batch_log_metrics':
+            if key == "batch_log_metrics":
                 return self.get_batch_log_metrics()
-            elif key == 'batch_pbar_metrics':
+            elif key == "batch_pbar_metrics":
                 return self.get_batch_pbar_metrics()
-            elif key == 'epoch_log_metrics':
+            elif key == "epoch_log_metrics":
                 return self.get_epoch_log_metrics()
-            elif key == 'epoch_pbar_metrics':
+            elif key == "epoch_pbar_metrics":
                 return self.get_epoch_pbar_metrics()
             else:
                 return self[key]
@@ -50,7 +49,7 @@ class Result(Dict):
 
     def __setattr__(self, key: str, val: Union[Tensor, Any]):
         # ensure tensors are detached
-        if isinstance(val, torch.Tensor) and key != 'minimize':
+        if isinstance(val, torch.Tensor) and key != "minimize":
             val = val.detach()
         self[key] = val
 
@@ -62,7 +61,7 @@ class Result(Dict):
 
     @property
     def minimize(self) -> Optional[Tensor]:
-        return self.get('minimize', None)
+        return self.get("minimize", None)
 
     @minimize.setter
     def minimize(self, val: Optional[torch.Tensor]) -> None:
@@ -71,7 +70,7 @@ class Result(Dict):
                 raise ValueError(f"`Result.minimize` must be a `torch.Tensor`, found: {val}")
             if val.grad_fn is None:
                 raise RuntimeError("`Result.minimize` must have a `grad_fn`")
-        self['minimize'] = val
+        self["minimize"] = val
 
     def log(
         self,
@@ -92,8 +91,8 @@ class Result(Dict):
         if isinstance(value, torch.Tensor) and value.device.type == "xla":
             value = value.cpu()
 
-        if 'meta' not in self:
-            self.__setitem__('meta', {})
+        if "meta" not in self:
+            self.__setitem__("meta", {})
 
         # if user requests both step and epoch, then we split the metric in two automatically
         # one will be logged per step. the other per epoch
@@ -102,7 +101,7 @@ class Result(Dict):
             was_forked = True
 
             # set step version
-            step_name = f'{name}_step'
+            step_name = f"{name}_step"
 
             self.__set_meta(
                 step_name,
@@ -119,7 +118,7 @@ class Result(Dict):
             self.__setitem__(step_name, value)
 
             # set epoch version
-            epoch_name = f'{name}_epoch'
+            epoch_name = f"{name}_epoch"
 
             self.__set_meta(
                 epoch_name,
@@ -175,11 +174,11 @@ class Result(Dict):
             dataloader_idx=dataloader_idx,
         )
 
-        self['meta'][name] = meta
+        self["meta"][name] = meta
 
         # track whether any input requires reduction on epoch end
-        _internal = self['meta']['_internal']
-        _internal['_reduce_on_epoch'] = max(_internal['_reduce_on_epoch'], on_epoch)
+        _internal = self["meta"]["_internal"]
+        _internal["_reduce_on_epoch"] = max(_internal["_reduce_on_epoch"], on_epoch)
 
     def track_batch_size(self, batch):
         batch_size = Result.extract_batch_size(batch)
@@ -194,14 +193,14 @@ class Result(Dict):
         return batch_size
 
     @staticmethod
-    def attach_batch_size(batch_size: Union[int, None], result: 'Result') -> None:
+    def attach_batch_size(batch_size: Union[int, None], result: "Result") -> None:
         if batch_size is not None:
-            meta = result['meta']
-            meta['_internal']['batch_sizes'].append(batch_size)
+            meta = result["meta"]
+            meta["_internal"]["batch_sizes"].append(batch_size)
 
     def get_batch_sizes(self):
-        meta = self['meta']
-        return torch.tensor(meta['_internal']['batch_sizes'])
+        meta = self["meta"]
+        return torch.tensor(meta["_internal"]["batch_sizes"])
 
     def _add_dataloader_idx(self, k: str, dataloader_idx: Union[int, None], add_dataloader_idx: bool) -> str:
         if dataloader_idx is not None and add_dataloader_idx:
@@ -215,17 +214,17 @@ class Result(Dict):
         """
         result = {}
 
-        meta = self['meta']
+        meta = self["meta"]
         for k, options in meta.items():
-            if k == '_internal':
+            if k == "_internal":
                 continue
 
-            if options['forked'] and not include_forked_originals:
+            if options["forked"] and not include_forked_originals:
                 continue
 
             dl_key = self._add_dataloader_idx(k, options["dataloader_idx"], add_dataloader_idx)
 
-            if options['logger'] and options['on_step']:
+            if options["logger"] and options["on_step"]:
                 if isinstance(self[k], Metric) and self[k]._forward_cache is not None:
                     result[dl_key] = self[k]._forward_cache.detach()
                 else:
@@ -238,23 +237,23 @@ class Result(Dict):
         Gets the metrics to log at the end of epoch
         """
         result = {}
-        meta = self['meta']
+        meta = self["meta"]
         for k, options in meta.items():
-            if k == '_internal':
+            if k == "_internal":
                 continue
 
-            if options['forked']:
+            if options["forked"]:
                 continue
 
             dl_key = self._add_dataloader_idx(k, options["dataloader_idx"], add_dataloader_idx)
 
-            if options['logger'] and options['on_epoch']:
+            if options["logger"] and options["on_epoch"]:
                 if isinstance(self[k], Metric):
                     result[dl_key] = self[k].compute().detach()
                 else:
                     result[dl_key] = self[k]
 
-            if k in self and not options['on_epoch'] and isinstance(self[k], Metric):
+            if k in self and not options["on_epoch"] and isinstance(self[k], Metric):
                 # compute for reuse later
                 self[k].compute()
 
@@ -266,23 +265,23 @@ class Result(Dict):
         """
         result = {}
 
-        meta = self['meta']
+        meta = self["meta"]
         for k, options in meta.items():
-            if k == '_internal':
+            if k == "_internal":
                 continue
 
-            if options['forked']:
+            if options["forked"]:
                 continue
 
             dl_key = self._add_dataloader_idx(k, options["dataloader_idx"], add_dataloader_idx)
 
-            if options['prog_bar'] and options['on_epoch']:
+            if options["prog_bar"] and options["on_epoch"]:
                 if isinstance(self[k], Metric):
                     result[dl_key] = self[k].compute().detach()
                 else:
                     result[dl_key] = self[k]
 
-            if k in self and not options['on_epoch'] and isinstance(self[k], Metric):
+            if k in self and not options["on_epoch"] and isinstance(self[k], Metric):
                 # compute for reuse later
                 self[k].compute()
 
@@ -294,14 +293,14 @@ class Result(Dict):
         """
         result = {}
 
-        meta = self['meta']
+        meta = self["meta"]
         for k, options in meta.items():
-            if k == '_internal':
+            if k == "_internal":
                 continue
 
             dl_key = self._add_dataloader_idx(k, options["dataloader_idx"], add_dataloader_idx)
 
-            if options['forked']:
+            if options["forked"]:
                 if isinstance(self[k], Metric):
                     result[dl_key] = self[k].compute().detach()
                 else:
@@ -315,17 +314,17 @@ class Result(Dict):
         """
         result = {}
 
-        meta = self['meta']
+        meta = self["meta"]
         for k, options in meta.items():
-            if k == '_internal':
+            if k == "_internal":
                 continue
 
-            if options['forked'] and not include_forked_originals:
+            if options["forked"] and not include_forked_originals:
                 continue
 
             dl_key = self._add_dataloader_idx(k, options["dataloader_idx"], add_dataloader_idx)
 
-            if options['prog_bar'] and options['on_step']:
+            if options["prog_bar"] and options["on_step"]:
                 if isinstance(self[k], Metric) and self[k]._forward_cache is not None:
                     result[dl_key] = self[k]._forward_cache
                 else:
@@ -333,34 +332,34 @@ class Result(Dict):
 
         return result
 
-    def detach(self) -> 'Result':
+    def detach(self) -> "Result":
         for k, v in self.items():
             if isinstance(v, torch.Tensor):
                 self.__setitem__(k, v.detach())
         return self
 
-    def to(self, *args, **kwargs) -> 'Result':
+    def to(self, *args, **kwargs) -> "Result":
         """Move all self attributes to the given device."""
         for k, v in self.items():
             if isinstance(v, torch.Tensor):
                 self.__setitem__(k, v.to(*args, **kwargs))
         return self
 
-    def cpu(self) -> 'Result':
+    def cpu(self) -> "Result":
         """Move all self attributes to CPU."""
         return self.to(torch.device("cpu"))
 
     def __repr__(self):
         self_copy = self.copy()
 
-        if 'meta' in self_copy:
-            del self_copy['meta']
+        if "meta" in self_copy:
+            del self_copy["meta"]
 
         return str(self_copy)
 
     def __str__(self):
         copy = self.copy()
-        del copy['meta']
+        del copy["meta"]
 
         return str(copy)
 
@@ -399,7 +398,7 @@ class Result(Dict):
         meta = {}
         for x in outputs:
             batch_sizes.append(x.get_batch_sizes())
-            meta.update(x['meta'])
+            meta.update(x["meta"])
 
         batch_sizes = torch.stack(batch_sizes).view(-1)
 
@@ -408,16 +407,16 @@ class Result(Dict):
         recursive_stack(result)
 
         for k, option in meta.items():
-            if k == '_internal' or isinstance(result[k], Metric):
+            if k == "_internal" or isinstance(result[k], Metric):
                 continue
 
             # for forked metrics don't reduce, just take the last val
-            if option['forked']:
+            if option["forked"]:
                 result[k] = choose_last(result[k])
                 continue
 
-            if option['on_epoch']:
-                fx = option['reduce_fx']
+            if option["on_epoch"]:
+                fx = option["reduce_fx"]
                 if fx == torch.mean:
                     if isinstance(result[k], list):
                         result[k] = torch.tensor(result[k]).float()
@@ -433,20 +432,20 @@ class Result(Dict):
             else:
                 del result[k]
 
-        result['meta'] = meta
+        result["meta"] = meta
         return result
 
     @classmethod
     def reduce_across_time(cls, time_outputs):
         # auto-reduce across time for tbptt
-        meta = time_outputs[0]['meta']
+        meta = time_outputs[0]["meta"]
 
         result = cls()
         result = recursive_gather(time_outputs, result)
         recursive_stack(result)
 
         for k, value in result.items():
-            if k in ['meta', 'extra'] or isinstance(value, Metric):
+            if k in ["meta", "extra"] or isinstance(value, Metric):
                 continue
 
             if isinstance(value, list):
@@ -458,12 +457,12 @@ class Result(Dict):
             else:
                 result[k] = torch.mean(value.float())
 
-        result['meta'] = meta
+        result["meta"] = meta
         return result
 
     @property
     def should_reduce_on_epoch_end(self) -> bool:
-        return self['meta']['_internal']['_reduce_on_epoch']
+        return self["meta"]["_internal"]["_reduce_on_epoch"]
 
     def rename_keys(self, map_dict: dict):
         """
@@ -501,12 +500,12 @@ def choose_last(x):
 
 def recursive_gather(outputs: Sequence[dict], result: Optional[MutableMapping] = None) -> Optional[MutableMapping]:
     for out in outputs:
-        if 'meta' in out:
-            del out['meta']
+        if "meta" in out:
+            del out["meta"]
 
         for k, v in out.items():
             # support manual opt where the user does not return a minimize key
-            if k == 'minimize' and v is None:
+            if k == "minimize" and v is None:
                 continue
 
             if isinstance(v, dict):
@@ -570,14 +569,14 @@ def weighted_mean(result, weights):
         if isinstance(result, list):
             result = torch.tensor(result)
 
-        weights = weights.to(result.device)[:result.size(0)]
+        weights = weights.to(result.device)[: result.size(0)]
         numerator = torch.dot(result.float(), weights.transpose(-1, 0).float())
         result = numerator / weights.sum().float()
     return result
 
 
 def _process_dataloader_aggregated_steps(result, weights):
-    internal_keys = {'meta'}
+    internal_keys = {"meta"}
 
     moved = False
 
@@ -595,7 +594,7 @@ def _process_dataloader_aggregated_steps(result, weights):
             moved = True
 
         # move weights to same device as value to reduce
-        weights_t = weights[:v.size(0)]
+        weights_t = weights[: v.size(0)]
 
         # weighted mean
         numerator = torch.dot(v.float(), weights_t.transpose(-1, 0).float())

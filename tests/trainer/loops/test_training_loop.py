@@ -22,7 +22,6 @@ def test_outputs_format(tmpdir):
     """Tests that outputs objects passed to model hooks and methods are consistent and in the correct format."""
 
     class HookedModel(BoringModel):
-
         def training_step(self, batch, batch_idx):
             output = super().training_step(batch, batch_idx)
             self.log("foo", 123)
@@ -60,10 +59,9 @@ def test_outputs_format(tmpdir):
 
 
 def test_training_starts_with_seed(tmpdir):
-    """ Test that the training always starts with the same random state (when using seed_everything). """
+    """Test that the training always starts with the same random state (when using seed_everything)."""
 
     class SeededModel(BoringModel):
-
         def __init__(self):
             super().__init__()
             self.seen_batches = []
@@ -79,24 +77,14 @@ def test_training_starts_with_seed(tmpdir):
         trainer.fit(model)
         return torch.cat(model.seen_batches)
 
-    sequence0 = run_training(
-        default_root_dir=tmpdir,
-        max_steps=2,
-        num_sanity_val_steps=0,
-    )
-    sequence1 = run_training(
-        default_root_dir=tmpdir,
-        max_steps=2,
-        num_sanity_val_steps=2,
-    )
+    sequence0 = run_training(default_root_dir=tmpdir, max_steps=2, num_sanity_val_steps=0)
+    sequence1 = run_training(default_root_dir=tmpdir, max_steps=2, num_sanity_val_steps=2)
     assert torch.allclose(sequence0, sequence1)
 
 
-@pytest.mark.parametrize(['max_epochs', 'batch_idx_'], [(2, 5), (3, 8), (4, 12)])
+@pytest.mark.parametrize(["max_epochs", "batch_idx_"], [(2, 5), (3, 8), (4, 12)])
 def test_on_train_batch_start_return_minus_one(max_epochs, batch_idx_):
-
     class CurrentModel(BoringModel):
-
         def on_train_batch_start(self, batch, batch_idx, dataloader_idx):
             if batch_idx == batch_idx_:
                 return -1
@@ -116,7 +104,6 @@ def test_should_stop_mid_epoch(tmpdir):
     """Test that training correctly stops mid epoch and that validation is still called at the right time"""
 
     class TestModel(BoringModel):
-
         def __init__(self):
             super().__init__()
             self.validation_called_at = None
@@ -131,12 +118,7 @@ def test_should_stop_mid_epoch(tmpdir):
             return super().validation_step(*args)
 
     model = TestModel()
-    trainer = Trainer(
-        default_root_dir=tmpdir,
-        max_epochs=1,
-        limit_train_batches=10,
-        limit_val_batches=1,
-    )
+    trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, limit_train_batches=10, limit_val_batches=1)
     trainer.fit(model)
 
     assert trainer.current_epoch == 0

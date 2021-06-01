@@ -32,14 +32,12 @@ def test_v1_6_0_trainer_model_hook_mixin(tmpdir):
 
 
 def test_old_transfer_batch_to_device_hook(tmpdir):
-
     class OldModel(BoringModel):
-
         def transfer_batch_to_device(self, batch, device):
             return super().transfer_batch_to_device(batch, device, None)
 
     trainer = Trainer(default_root_dir=tmpdir, limit_train_batches=1, limit_val_batches=0, max_epochs=1)
-    with pytest.deprecated_call(match='old signature will be removed in v1.6'):
+    with pytest.deprecated_call(match="old signature will be removed in v1.6"):
         trainer.fit(OldModel())
 
 
@@ -64,9 +62,7 @@ def test_v1_6_0_ddp_spawn_sync_batchnorm():
 
 
 def test_v1_6_0_tbptt_reduce_fx(tmpdir):
-
     class TestModel(BoringModel):
-
         def training_step(self, *args):
             self.log("foo", 1, tbptt_reduce_fx=lambda x: x)
             return super().training_step(*args)
@@ -77,9 +73,7 @@ def test_v1_6_0_tbptt_reduce_fx(tmpdir):
 
 
 def test_v1_6_0_tbptt_pad_token(tmpdir):
-
     class TestModel(BoringModel):
-
         def training_step(self, *args):
             self.log("foo", 1, tbptt_pad_token=0)
             return super().training_step(*args)

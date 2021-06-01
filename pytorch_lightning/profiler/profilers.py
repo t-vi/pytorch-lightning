@@ -73,7 +73,7 @@ class BaseProfiler(AbstractProfiler):
             rank_zero_warn(
                 "`Profiler` signature has changed in v1.3. The `output_filename` parameter has been removed in"
                 " favor of `dirpath` and `filename`. Support for the old signature will be removed in v1.5",
-                DeprecationWarning
+                DeprecationWarning,
             )
             filepath = Path(output_filename)
             self.dirpath = filepath.parent
@@ -167,10 +167,7 @@ class BaseProfiler(AbstractProfiler):
         return os.linesep.join(output)
 
     def setup(
-        self,
-        stage: Optional[str] = None,
-        local_rank: Optional[int] = None,
-        log_dir: Optional[str] = None,
+        self, stage: Optional[str] = None, local_rank: Optional[int] = None, log_dir: Optional[str] = None
     ) -> None:
         """Execute arbitrary pre-profiling set-up steps."""
         self._stage = stage
@@ -270,7 +267,7 @@ class SimpleProfiler(BaseProfiler):
 
     def _make_report(self) -> Tuple[list, float]:
         total_duration = time.monotonic() - self.start_time
-        report = [[a, d, 100. * np.sum(d) / total_duration] for a, d in self.recorded_durations.items()]
+        report = [[a, d, 100.0 * np.sum(d) / total_duration] for a, d in self.recorded_durations.items()]
         report.sort(key=lambda x: x[2], reverse=True)
         return report, total_duration
 
@@ -369,7 +366,7 @@ class AdvancedProfiler(BaseProfiler):
         recorded_stats = {}
         for action_name, pr in self.profiled_actions.items():
             s = io.StringIO()
-            ps = pstats.Stats(pr, stream=s).strip_dirs().sort_stats('cumulative')
+            ps = pstats.Stats(pr, stream=s).strip_dirs().sort_stats("cumulative")
             ps.print_stats(self.line_count_restriction)
             recorded_stats[action_name] = s.getvalue()
         return self._stats_to_str(recorded_stats)

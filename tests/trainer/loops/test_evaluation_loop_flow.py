@@ -28,7 +28,6 @@ def test__eval_step__flow(tmpdir):
     """
 
     class TestModel(DeterministicModel):
-
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -38,9 +37,9 @@ def test__eval_step__flow(tmpdir):
         def validation_step(self, batch, batch_idx):
             self.validation_step_called = True
             if batch_idx == 0:
-                out = ['1', 2, torch.tensor(2)]
+                out = ["1", 2, torch.tensor(2)]
             if batch_idx > 0:
-                out = {'something': 'random'}
+                out = {"something": "random"}
             return out
 
         def backward(self, loss, optimizer, optimizer_idx):
@@ -76,18 +75,14 @@ def test__eval_step__flow(tmpdir):
     train_step_out = out.training_step_output_for_epoch_end
     assert len(train_step_out) == 1
     train_step_out = train_step_out[0][0]
-    assert isinstance(train_step_out['minimize'], torch.Tensor)
-    assert train_step_out['minimize'].item() == 171
+    assert isinstance(train_step_out["minimize"], torch.Tensor)
+    assert train_step_out["minimize"].item() == 171
 
     # make sure the optimizer closure returns the correct things
     opt_closure_result = trainer.train_loop.training_step_and_backward(
-        batch,
-        batch_idx,
-        0,
-        trainer.optimizers[0],
-        hiddens=None,
+        batch, batch_idx, 0, trainer.optimizers[0], hiddens=None
     )
-    assert opt_closure_result['loss'].item() == 171
+    assert opt_closure_result["loss"].item() == 171
 
 
 def test__eval_step__eval_step_end__flow(tmpdir):
@@ -96,7 +91,6 @@ def test__eval_step__eval_step_end__flow(tmpdir):
     """
 
     class TestModel(DeterministicModel):
-
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -106,9 +100,9 @@ def test__eval_step__eval_step_end__flow(tmpdir):
         def validation_step(self, batch, batch_idx):
             self.validation_step_called = True
             if batch_idx == 0:
-                out = ['1', 2, torch.tensor(2)]
+                out = ["1", 2, torch.tensor(2)]
             if batch_idx > 0:
-                out = {'something': 'random'}
+                out = {"something": "random"}
             self.last_out = out
             return out
 
@@ -149,14 +143,14 @@ def test__eval_step__eval_step_end__flow(tmpdir):
     train_step_out = out.training_step_output_for_epoch_end
     assert len(train_step_out) == 1
     train_step_out = train_step_out[0][0]
-    assert isinstance(train_step_out['minimize'], torch.Tensor)
-    assert train_step_out['minimize'].item() == 171
+    assert isinstance(train_step_out["minimize"], torch.Tensor)
+    assert train_step_out["minimize"].item() == 171
 
     # make sure the optimizer closure returns the correct things
     opt_closure_result = trainer.train_loop.training_step_and_backward(
         batch, batch_idx, 0, trainer.optimizers[0], hiddens=None
     )
-    assert opt_closure_result['loss'].item() == 171
+    assert opt_closure_result["loss"].item() == 171
 
 
 def test__eval_step__epoch_end__flow(tmpdir):
@@ -165,7 +159,6 @@ def test__eval_step__epoch_end__flow(tmpdir):
     """
 
     class TestModel(DeterministicModel):
-
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -175,10 +168,10 @@ def test__eval_step__epoch_end__flow(tmpdir):
         def validation_step(self, batch, batch_idx):
             self.validation_step_called = True
             if batch_idx == 0:
-                out = ['1', 2, torch.tensor(2)]
+                out = ["1", 2, torch.tensor(2)]
                 self.out_a = out
             if batch_idx > 0:
-                out = {'something': 'random'}
+                out = {"something": "random"}
                 self.out_b = out
             return out
 
@@ -221,7 +214,6 @@ def test__validation_step__step_end__epoch_end__flow(tmpdir):
     """
 
     class TestModel(DeterministicModel):
-
         def training_step(self, batch, batch_idx):
             acc = self.step(batch, batch_idx)
             acc = acc + batch_idx
@@ -231,10 +223,10 @@ def test__validation_step__step_end__epoch_end__flow(tmpdir):
         def validation_step(self, batch, batch_idx):
             self.validation_step_called = True
             if batch_idx == 0:
-                out = ['1', 2, torch.tensor(2)]
+                out = ["1", 2, torch.tensor(2)]
                 self.out_a = out
             if batch_idx > 0:
-                out = {'something': 'random'}
+                out = {"something": "random"}
                 self.out_b = out
             self.last_out = out
             return out

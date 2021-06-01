@@ -22,7 +22,6 @@ def test_lambda_call(tmpdir):
     seed_everything(42)
 
     class CustomModel(BoringModel):
-
         def on_train_epoch_start(self):
             if self.current_epoch > 1:
                 raise KeyboardInterrupt

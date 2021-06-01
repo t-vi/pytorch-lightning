@@ -75,8 +75,8 @@ class TensorBoardLogger(LightningLoggerBase):
             :class:`SummaryWriter` can be passed as keyword arguments in this logger.
 
     """
-    NAME_HPARAMS_FILE = 'hparams.yaml'
-    LOGGER_JOIN_CHAR = '-'
+    NAME_HPARAMS_FILE = "hparams.yaml"
+    LOGGER_JOIN_CHAR = "-"
 
     def __init__(
         self,
@@ -85,13 +85,13 @@ class TensorBoardLogger(LightningLoggerBase):
         version: Optional[Union[int, str]] = None,
         log_graph: bool = False,
         default_hp_metric: bool = True,
-        prefix: str = '',
+        prefix: str = "",
         sub_dir: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__()
         self._save_dir = save_dir
-        self._name = name or ''
+        self._name = name or ""
         self._version = version
         self._sub_dir = sub_dir
         self._log_graph = log_graph
@@ -154,7 +154,7 @@ class TensorBoardLogger(LightningLoggerBase):
         if self._experiment is not None:
             return self._experiment
 
-        assert rank_zero_only.rank == 0, 'tried to init log dirs in non global_rank=0'
+        assert rank_zero_only.rank == 0, "tried to init log dirs in non global_rank=0"
         if self.root_dir:
             self._fs.makedirs(self.root_dir, exist_ok=True)
         self._experiment = SummaryWriter(log_dir=self.log_dir, **self._kwargs)
@@ -162,9 +162,7 @@ class TensorBoardLogger(LightningLoggerBase):
 
     @rank_zero_only
     def log_hyperparams(
-        self,
-        params: Union[Dict[str, Any], Namespace],
-        metrics: Optional[Dict[str, Any]] = None,
+        self, params: Union[Dict[str, Any], Namespace], metrics: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Record hyperparameters. TensorBoard logs with and without saved hyperparameters
@@ -204,7 +202,7 @@ class TensorBoardLogger(LightningLoggerBase):
 
     @rank_zero_only
     def log_metrics(self, metrics: Dict[str, float], step: Optional[int] = None) -> None:
-        assert rank_zero_only.rank == 0, 'experiment tried to log from global_rank != 0'
+        assert rank_zero_only.rank == 0, "experiment tried to log from global_rank != 0"
 
         metrics = self._add_prefix(metrics)
 
@@ -219,7 +217,7 @@ class TensorBoardLogger(LightningLoggerBase):
                     self.experiment.add_scalar(k, v, step)
                 # todo: specify the possible exception
                 except Exception as ex:
-                    m = f'\n you tried to log {v} which is not currently supported. Try a dict or a scalar/tensor.'
+                    m = f"\n you tried to log {v} which is not currently supported. Try a dict or a scalar/tensor."
                     raise ValueError(m) from ex
 
     @rank_zero_only
@@ -233,9 +231,10 @@ class TensorBoardLogger(LightningLoggerBase):
                 self.experiment.add_graph(model, input_array)
             else:
                 rank_zero_warn(
-                    'Could not log computational graph since the'
-                    ' `model.example_input_array` attribute is not set'
-                    ' or `input_array` was not given', UserWarning
+                    "Could not log computational graph since the"
+                    " `model.example_input_array` attribute is not set"
+                    " or `input_array` was not given",
+                    UserWarning,
                 )
 
     @rank_zero_only
@@ -270,7 +269,7 @@ class TensorBoardLogger(LightningLoggerBase):
         root_dir = os.path.join(self.save_dir, self.name)
 
         if not self._fs.isdir(root_dir):
-            log.warning('Missing logger folder: %s', root_dir)
+            log.warning("Missing logger folder: %s", root_dir)
             return 0
 
         existing_versions = []
@@ -278,7 +277,7 @@ class TensorBoardLogger(LightningLoggerBase):
             d = listing["name"]
             bn = os.path.basename(d)
             if self._fs.isdir(d) and bn.startswith("version_"):
-                dir_ver = bn.split("_")[1].replace('/', '')
+                dir_ver = bn.split("_")[1].replace("/", "")
                 existing_versions.append(int(dir_ver))
         if len(existing_versions) == 0:
             return 0

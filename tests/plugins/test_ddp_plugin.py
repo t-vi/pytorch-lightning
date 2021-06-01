@@ -20,7 +20,6 @@ from tests.helpers.runif import RunIf
 
 
 class BoringModelGPU(BoringModel):
-
     def on_train_start(self) -> None:
         # make sure that the model is on GPU when training
         assert self.device == torch.device(f"cuda:{self.trainer.training_type_plugin.local_rank}")

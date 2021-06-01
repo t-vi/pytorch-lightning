@@ -19,7 +19,6 @@ from pytorch_lightning.metrics.utils import deprecated_metrics
 
 
 class Accuracy(_Accuracy):
-
     @deprecated_metrics(target=_Accuracy)
     def __init__(
         self,

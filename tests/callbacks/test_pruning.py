@@ -35,11 +35,9 @@ class TestModel(BoringModel):
     def __init__(self):
         super().__init__()
         self.layer = Sequential(
-            OrderedDict([
-                ("mlp_1", nn.Linear(32, 32)),
-                ("mlp_2", nn.Linear(32, 32, bias=False)),
-                ("mlp_3", nn.Linear(32, 2)),
-            ])
+            OrderedDict(
+                [("mlp_1", nn.Linear(32, 32)), ("mlp_2", nn.Linear(32, 32, bias=False)), ("mlp_3", nn.Linear(32, 2))]
+            )
         )
 
     def training_step(self, batch, batch_idx):
@@ -149,8 +147,11 @@ def test_pruning_misconfiguration():
 )
 @pytest.mark.parametrize("use_lottery_ticket_hypothesis", [False, True])
 def test_pruning_callback(
-    tmpdir, use_global_unstructured: bool, parameters_to_prune: bool,
-    pruning_fn: Union[str, pytorch_prune.BasePruningMethod], use_lottery_ticket_hypothesis: bool
+    tmpdir,
+    use_global_unstructured: bool,
+    parameters_to_prune: bool,
+    pruning_fn: Union[str, pytorch_prune.BasePruningMethod],
+    use_lottery_ticket_hypothesis: bool,
 ):
     train_with_pruning_callback(
         tmpdir,
@@ -227,9 +228,9 @@ def test_pruning_lth_callable(tmpdir, resample_parameters: bool):
 def test_multiple_pruning_callbacks(tmpdir, caplog, make_pruning_permanent: bool):
     model = TestModel()
     pruning_kwargs = {
-        'parameters_to_prune': [(model.layer.mlp_1, "weight"), (model.layer.mlp_3, "weight")],
-        'verbose': 2,
-        "make_pruning_permanent": make_pruning_permanent
+        "parameters_to_prune": [(model.layer.mlp_1, "weight"), (model.layer.mlp_3, "weight")],
+        "verbose": 2,
+        "make_pruning_permanent": make_pruning_permanent,
     }
     p1 = ModelPruning("l1_unstructured", amount=0.5, apply_pruning=lambda e: not e % 2, **pruning_kwargs)
     p2 = ModelPruning("random_unstructured", amount=0.25, apply_pruning=lambda e: e % 2, **pruning_kwargs)
@@ -282,7 +283,6 @@ def test_permanent_when_model_is_saved_multiple_times(tmpdir, caplog, on_train_e
     """
 
     class TestPruning(ModelPruning):
-
         def on_save_checkpoint(self, trainer, pl_module, checkpoint):
             super().on_save_checkpoint(trainer, pl_module, checkpoint)
             if not on_train_epoch_end:

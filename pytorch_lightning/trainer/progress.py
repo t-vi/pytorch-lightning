@@ -28,6 +28,7 @@ class Tracker:
 
     Attributes set to ``None`` are treated as unused and are restricted.
     """
+
     ready: Optional[int] = 0
     started: Optional[int] = 0
     processed: Optional[int] = 0
@@ -63,6 +64,7 @@ class Progress:
         total: Intended to track the total progress of an event
         current: Intended to track the current progress of an event
     """
+
     total: Tracker = field(default_factory=Tracker)
     current: Tracker = field(default_factory=Tracker)
 
@@ -91,7 +93,7 @@ class Progress:
         self.current.completed += 1
 
     @classmethod
-    def from_defaults(cls, **kwargs: Optional[int]) -> 'Progress':
+    def from_defaults(cls, **kwargs: Optional[int]) -> "Progress":
         return cls(total=Tracker(**kwargs), current=Tracker(**kwargs))
 
 
@@ -106,6 +108,7 @@ class LoopProgress:
         epoch: Tracks epochs progress.
         batch: Tracks batch progress.
     """
+
     epoch: Progress = field(default_factory=Progress)
     batch: Progress = field(default_factory=Progress)
 
@@ -127,6 +130,7 @@ class OptimizationProgress:
         optimizer: Tracks optimizer progress.
         scheduler: Tracks scheduler progress.
     """
+
     optimizer: Progress = Progress.from_defaults(processed=None)
     scheduler: Progress = Progress.from_defaults(started=None, processed=None)
     zero_grad: Progress = Progress.from_defaults(processed=None)
@@ -148,6 +152,7 @@ class TrainingProgress(Progress):
     Args:
         optimization: Tracks optimization progress
     """
+
     optimization: OptimizationProgress = field(default_factory=OptimizationProgress)
 
 

@@ -45,7 +45,6 @@ if _BOLTS_AVAILABLE:
 
 
 class Flatten(nn.Module):
-
     def forward(self, x):
         return x.view(x.size(0), -1)
 
@@ -75,7 +74,6 @@ class LitResnet(pl.LightningModule):
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
             nn.ReLU(inplace=False),
             nn.MaxPool2d(kernel_size=2, stride=2),
-
             # Conv Layer block 2
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
@@ -84,7 +82,6 @@ class LitResnet(pl.LightningModule):
             nn.ReLU(inplace=False),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Dropout2d(p=0.05),
-
             # Conv Layer block 3
             nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1),
             nn.BatchNorm2d(256),
@@ -99,7 +96,7 @@ class LitResnet(pl.LightningModule):
             nn.Linear(1024, 512),
             nn.ReLU(inplace=False),
             nn.Dropout(p=0.1),
-            nn.Linear(512, 10)
+            nn.Linear(512, 10),
         )
         self._example_input_array = torch.randn((1, 3, 32, 32))
 
@@ -119,7 +116,7 @@ class LitResnet(pl.LightningModule):
             logits = self.forward(x)
             loss = F.nll_loss(logits, y)
             self.manual_backward(loss, opt)
-            self.log('train_loss', loss, prog_bar=True)
+            self.log("train_loss", loss, prog_bar=True)
 
         opt.step(closure=closure)
 
@@ -127,7 +124,7 @@ class LitResnet(pl.LightningModule):
         x, y = batch
         logits = self.forward(x)
         loss = F.nll_loss(logits, y)
-        self.log('Training Loss', loss)
+        self.log("Training Loss", loss)
         return loss
 
     def _evaluate(self, batch, batch_idx, stage=None):
@@ -139,31 +136,31 @@ class LitResnet(pl.LightningModule):
         acc = accuracy(preds, y)
 
         if stage:
-            self.log(f'{stage}_loss', loss, prog_bar=True)
-            self.log(f'{stage}_acc', acc, prog_bar=True)
+            self.log(f"{stage}_loss", loss, prog_bar=True)
+            self.log(f"{stage}_acc", acc, prog_bar=True)
 
         return loss, acc
 
     def validation_step(self, batch, batch_idx):
-        return self._evaluate(batch, batch_idx, 'val')[0]
+        return self._evaluate(batch, batch_idx, "val")[0]
 
     def test_step(self, batch, batch_idx):
-        loss, acc = self._evaluate(batch, batch_idx, 'test')
-        self.log_dict({'test_loss': loss, 'test_acc': acc})
+        loss, acc = self._evaluate(batch, batch_idx, "test")
+        self.log_dict({"test_loss": loss, "test_acc": acc})
 
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.parameters(), lr=self.hparams.lr, momentum=0.9, weight_decay=5e-4)
         return {
-            'optimizer': optimizer,
-            'lr_scheduler': {
-                'scheduler': torch.optim.lr_scheduler.OneCycleLR(
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": torch.optim.lr_scheduler.OneCycleLR(
                     optimizer,
                     0.1,
                     epochs=self.trainer.max_epochs,
-                    steps_per_epoch=math.ceil(45000 / self.hparams.batch_size)
+                    steps_per_epoch=math.ceil(45000 / self.hparams.batch_size),
                 ),
-                'interval': 'step',
-            }
+                "interval": "step",
+            },
         }
 
 
@@ -173,17 +170,16 @@ class LitResnet(pl.LightningModule):
 
 
 def instantiate_datamodule(args):
-    train_transforms = torchvision.transforms.Compose([
-        torchvision.transforms.RandomCrop(32, padding=4),
-        torchvision.transforms.RandomHorizontalFlip(),
-        torchvision.transforms.ToTensor(),
-        cifar10_normalization(),
-    ])
+    train_transforms = torchvision.transforms.Compose(
+        [
+            torchvision.transforms.RandomCrop(32, padding=4),
+            torchvision.transforms.RandomHorizontalFlip(),
+            torchvision.transforms.ToTensor(),
+            cifar10_normalization(),
+        ]
+    )
 
-    test_transforms = torchvision.transforms.Compose([
-        torchvision.transforms.ToTensor(),
-        cifar10_normalization(),
-    ])
+    test_transforms = torchvision.transforms.Compose([torchvision.transforms.ToTensor(), cifar10_normalization()])
 
     cifar10_dm = pl_bolts.datamodules.CIFAR10DataModule(
         data_dir=args.data_dir,

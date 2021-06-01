@@ -31,7 +31,6 @@ from pytorch_lightning.utilities.types import _EVALUATE_OUTPUT
 
 
 class LoggerConnector:
-
     def __init__(self, trainer, log_gpu_memory: Optional[str] = None):
         self.trainer = trainer
         self.log_gpu_memory = log_gpu_memory
@@ -137,11 +136,11 @@ class LoggerConnector:
 
     def configure_logger(self, logger):
         if logger is True:
-            version = os.environ.get('PL_EXP_VERSION', self.trainer.slurm_job_id)
+            version = os.environ.get("PL_EXP_VERSION", self.trainer.slurm_job_id)
 
             # default logger
             self.trainer.logger = TensorBoardLogger(
-                save_dir=self.trainer.default_root_dir, version=version, name='lightning_logs'
+                save_dir=self.trainer.default_root_dir, version=version, name="lightning_logs"
             )
         elif logger is False:
             self.trainer.logger = None
@@ -219,7 +218,7 @@ class LoggerConnector:
 
         elif step is None:
             # added metrics by Lightning for convenience
-            scalar_metrics['epoch'] = self.trainer.current_epoch
+            scalar_metrics["epoch"] = self.trainer.current_epoch
             step = self.trainer.global_step
 
         # log actual metrics
@@ -276,17 +275,21 @@ class LoggerConnector:
 
         # log results of evaluation
         if (
-            self.trainer.state.fn != TrainerFn.FITTING and self.trainer.evaluating and self.trainer.is_global_zero
+            self.trainer.state.fn != TrainerFn.FITTING
+            and self.trainer.evaluating
+            and self.trainer.is_global_zero
             and self.trainer.verbose_evaluate
         ):
-            print('-' * 80)
+            print("-" * 80)
             for result_idx, results in enumerate(self.eval_loop_results):
-                print(f'DATALOADER:{result_idx} {self.trainer.state.stage.upper()} RESULTS')
-                pprint({
-                    k: (v.item() if v.numel() == 1 else v.tolist()) if isinstance(v, torch.Tensor) else v
-                    for k, v in results.items()
-                })
-                print('-' * 80)
+                print(f"DATALOADER:{result_idx} {self.trainer.state.stage.upper()} RESULTS")
+                pprint(
+                    {
+                        k: (v.item() if v.numel() == 1 else v.tolist()) if isinstance(v, torch.Tensor) else v
+                        for k, v in results.items()
+                    }
+                )
+                print("-" * 80)
 
         results = self.eval_loop_results
 

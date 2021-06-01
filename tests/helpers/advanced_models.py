@@ -25,7 +25,6 @@ from tests.helpers.datasets import AverageDataset, MNIST, TrialMNIST
 
 
 class Generator(nn.Module):
-
     def __init__(self, latent_dim: int, img_shape: tuple):
         super().__init__()
         self.img_shape = img_shape
@@ -53,7 +52,6 @@ class Generator(nn.Module):
 
 
 class Discriminator(nn.Module):
-
     def __init__(self, img_shape: tuple):
         super().__init__()
 
@@ -122,12 +120,8 @@ class BasicGAN(LightningModule):
 
             # adversarial loss is binary cross-entropy
             g_loss = self.adversarial_loss(self.discriminator(self.generated_imgs), valid)
-            tqdm_dict = {'g_loss': g_loss}
-            output = OrderedDict({
-                'loss': g_loss,
-                'progress_bar': tqdm_dict,
-                'log': tqdm_dict,
-            })
+            tqdm_dict = {"g_loss": g_loss}
+            output = OrderedDict({"loss": g_loss, "progress_bar": tqdm_dict, "log": tqdm_dict})
             return output
 
         # train discriminator
@@ -148,12 +142,8 @@ class BasicGAN(LightningModule):
 
             # discriminator loss is the average of these
             d_loss = (real_loss + fake_loss) / 2
-            tqdm_dict = {'d_loss': d_loss}
-            output = OrderedDict({
-                'loss': d_loss,
-                'progress_bar': tqdm_dict,
-                'log': tqdm_dict,
-            })
+            tqdm_dict = {"d_loss": d_loss}
+            output = OrderedDict({"loss": d_loss, "progress_bar": tqdm_dict, "log": tqdm_dict})
             return output
 
     def configure_optimizers(self):
@@ -170,7 +160,6 @@ class BasicGAN(LightningModule):
 
 
 class ParityModuleRNN(LightningModule):
-
     def __init__(self):
         super().__init__()
         self.rnn = nn.LSTM(10, 20, batch_first=True)
@@ -185,7 +174,7 @@ class ParityModuleRNN(LightningModule):
         x, y = batch
         y_hat = self(x)
         loss = F.mse_loss(y_hat, y)
-        return {'loss': loss}
+        return {"loss": loss}
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.02)
@@ -195,7 +184,6 @@ class ParityModuleRNN(LightningModule):
 
 
 class ParityModuleMNIST(LightningModule):
-
     def __init__(self):
         super().__init__()
         self.c_d1 = nn.Linear(in_features=28 * 28, out_features=128)
@@ -217,14 +205,10 @@ class ParityModuleMNIST(LightningModule):
         x, y = batch
         y_hat = self(x)
         loss = F.cross_entropy(y_hat, y)
-        return {'loss': loss}
+        return {"loss": loss}
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.02)
 
     def train_dataloader(self):
-        return DataLoader(MNIST(
-            root=PATH_DATASETS,
-            train=True,
-            download=True,
-        ), batch_size=128, num_workers=1)
+        return DataLoader(MNIST(root=PATH_DATASETS, train=True, download=True), batch_size=128, num_workers=1)

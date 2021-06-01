@@ -172,7 +172,7 @@ class GAN(LightningModule):
 
             # adversarial loss is binary cross-entropy
             g_loss = self.adversarial_loss(self.discriminator(self(z)), valid)
-            tqdm_dict = {'g_loss': g_loss}
+            tqdm_dict = {"g_loss": g_loss}
             self.log_dict(tqdm_dict)
             return g_loss
 
@@ -194,7 +194,7 @@ class GAN(LightningModule):
 
             # discriminator loss is the average of these
             d_loss = (real_loss + fake_loss) / 2
-            tqdm_dict = {'d_loss': d_loss}
+            tqdm_dict = {"d_loss": d_loss}
             self.log_dict(tqdm_dict)
 
             return d_loss
@@ -214,7 +214,7 @@ class GAN(LightningModule):
         # log sampled images
         sample_imgs = self(z)
         grid = torchvision.utils.make_grid(sample_imgs)
-        self.logger.experiment.add_image('generated_images', grid, self.current_epoch)
+        self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
 
 
 class MNISTDataModule(LightningDataModule):
@@ -266,7 +266,7 @@ def main(args: Namespace) -> None:
     trainer.fit(model, dm)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli_lightning_logo()
     parser = ArgumentParser()
 

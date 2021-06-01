@@ -67,12 +67,11 @@ class _TrainingTypePluginsRegistry(UserDict):
             init_params: parameters to initialize the plugin
         """
         if not (name is None or isinstance(name, str)):
-            raise TypeError(f'`name` must be a str, found {name}')
+            raise TypeError(f"`name` must be a str, found {name}")
 
         if name in self and not override:
             raise MisconfigurationException(
-                f"'{name}' is already present in the registry."
-                " HINT: Use `override=True`."
+                f"'{name}' is already present in the registry." " HINT: Use `override=True`."
             )
 
         data: Dict[str, Any] = {}
@@ -136,7 +135,7 @@ def is_register_plugins_overridden(plugin: type) -> bool:
     else:
         return False
 
-    if hasattr(plugin_attr, 'patch_loader_code'):
+    if hasattr(plugin_attr, "patch_loader_code"):
         is_overridden = plugin_attr.patch_loader_code != str(super_attr.__code__)
     else:
         is_overridden = plugin_attr.__code__ is not super_attr.__code__

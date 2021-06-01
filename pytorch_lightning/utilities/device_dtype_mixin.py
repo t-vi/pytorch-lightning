@@ -19,12 +19,12 @@ from torch.nn import Module
 
 
 class DeviceDtypeModuleMixin(Module):
-    __jit_unused_properties__ = ['device', 'dtype']
+    __jit_unused_properties__ = ["device", "dtype"]
 
     def __init__(self):
         super().__init__()
         self._dtype = torch.get_default_dtype()
-        self._device = torch.device('cpu')
+        self._device = torch.device("cpu")
 
     @property
     def dtype(self) -> Union[str, torch.dtype]:
@@ -33,15 +33,15 @@ class DeviceDtypeModuleMixin(Module):
     @dtype.setter
     def dtype(self, new_dtype: Union[str, torch.dtype]):
         # necessary to avoid infinite recursion
-        raise RuntimeError('Cannot set the dtype explicitly. Please use module.to(new_dtype).')
+        raise RuntimeError("Cannot set the dtype explicitly. Please use module.to(new_dtype).")
 
     @property
     def device(self) -> Union[str, torch.device]:
         device = self._device
 
         # make this more explicit to always include the index
-        if device.type == 'cuda' and device.index is None:
-            return torch.device(f'cuda:{torch.cuda.current_device()}')
+        if device.type == "cuda" and device.index is None:
+            return torch.device(f"cuda:{torch.cuda.current_device()}")
 
         return device
 
@@ -121,7 +121,7 @@ class DeviceDtypeModuleMixin(Module):
         Returns:
             Module: self
         """
-        property_device = device if isinstance(device, torch.device) else torch.device('cuda', index=device)
+        property_device = device if isinstance(device, torch.device) else torch.device("cuda", index=device)
         self.__update_properties(device=property_device)
         return super().cuda(device=device)
 
@@ -131,7 +131,7 @@ class DeviceDtypeModuleMixin(Module):
         Returns:
             Module: self
         """
-        self.__update_properties(device=torch.device('cpu'))
+        self.__update_properties(device=torch.device("cpu"))
         return super().cpu()
 
     def type(self, dst_type: Union[str, torch.dtype]) -> Module:
@@ -174,7 +174,6 @@ class DeviceDtypeModuleMixin(Module):
         return super().half()
 
     def __update_properties(self, device: Optional[torch.device] = None, dtype: Optional[torch.dtype] = None):
-
         def apply_fn(module):
             if not isinstance(module, DeviceDtypeModuleMixin):
                 return

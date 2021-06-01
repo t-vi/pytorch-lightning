@@ -198,10 +198,4 @@ Or::
 from pytorch_lightning.profiler.profilers import AdvancedProfiler, BaseProfiler, PassThroughProfiler, SimpleProfiler
 from pytorch_lightning.profiler.pytorch import PyTorchProfiler
 
-__all__ = [
-    'BaseProfiler',
-    'SimpleProfiler',
-    'AdvancedProfiler',
-    'PassThroughProfiler',
-    "PyTorchProfiler",
-]
+__all__ = ["BaseProfiler", "SimpleProfiler", "AdvancedProfiler", "PassThroughProfiler", "PyTorchProfiler"]

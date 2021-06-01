@@ -22,7 +22,6 @@ from tests.helpers.utils import pl_multi_process_test
 
 
 class WeightSharingModule(BoringModel):
-
     def __init__(self):
         super().__init__()
         self.layer_1 = nn.Linear(32, 10, bias=False)
@@ -40,14 +39,10 @@ class WeightSharingModule(BoringModel):
 @RunIf(tpu=True)
 @pl_multi_process_test
 def test_resume_training_on_cpu(tmpdir):
-    """ Checks if training can be resumed from a saved checkpoint on CPU"""
+    """Checks if training can be resumed from a saved checkpoint on CPU"""
     # Train a model on TPU
     model = BoringModel()
-    trainer = Trainer(
-        checkpoint_callback=True,
-        max_epochs=1,
-        tpu_cores=8,
-    )
+    trainer = Trainer(checkpoint_callback=True, max_epochs=1, tpu_cores=8)
     trainer.fit(model)
 
     model_path = trainer.checkpoint_callback.best_model_path
@@ -59,10 +54,7 @@ def test_resume_training_on_cpu(tmpdir):
 
     # Verify that training is resumed on CPU
     trainer = Trainer(
-        resume_from_checkpoint=model_path,
-        checkpoint_callback=True,
-        max_epochs=1,
-        default_root_dir=tmpdir,
+        resume_from_checkpoint=model_path, checkpoint_callback=True, max_epochs=1, default_root_dir=tmpdir
     )
     trainer.fit(model)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
@@ -71,7 +63,7 @@ def test_resume_training_on_cpu(tmpdir):
 @RunIf(tpu=True)
 @pl_multi_process_test
 def test_if_test_works_after_train(tmpdir):
-    """ Ensure that .test() works after .fit() """
+    """Ensure that .test() works after .fit()"""
 
     # Train a model on TPU
     model = BoringModel()
@@ -91,7 +83,7 @@ def test_weight_tying_warning(tmpdir, capsys=None):
     model = WeightSharingModule()
     trainer = Trainer(checkpoint_callback=True, max_epochs=1, tpu_cores=1)
 
-    with pytest.warns(UserWarning, match=r'The model layers do not match after moving to the target device.'):
+    with pytest.warns(UserWarning, match=r"The model layers do not match after moving to the target device."):
         trainer.fit(model)
 
 
@@ -104,7 +96,6 @@ def test_if_weights_tied(tmpdir, capsys=None):
     """
 
     class Model(WeightSharingModule):
-
         def on_post_move_to_device(self):
             self.layer_3.weight = self.layer_1.weight
 

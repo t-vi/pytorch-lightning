@@ -21,7 +21,7 @@ from pytorch_lightning.plugins.environments.cluster_environment import ClusterEn
 from pytorch_lightning.plugins.training_type.ddp import DDPPlugin
 from pytorch_lightning.utilities import _RPC_AVAILABLE
 
-DEFAULT_RPC_TIMEOUT_SEC = 60.
+DEFAULT_RPC_TIMEOUT_SEC = 60.0
 if _RPC_AVAILABLE:
     from torch.distributed import rpc
 
@@ -45,7 +45,7 @@ class RPCPlugin(DDPPlugin):
         num_nodes: Optional[int] = None,
         cluster_environment: Optional[ClusterEnvironment] = None,
         sync_batchnorm: Optional[bool] = None,
-        **kwargs
+        **kwargs,
     ):
         self.rpc_timeout_sec = rpc_timeout_sec
         self._is_rpc_initialized = False
@@ -54,11 +54,11 @@ class RPCPlugin(DDPPlugin):
             num_nodes=num_nodes,
             cluster_environment=cluster_environment,
             sync_batchnorm=sync_batchnorm,
-            **kwargs
+            **kwargs,
         )
 
     def init_rpc_connection(self, global_rank: int, world_size: int) -> None:
-        os.environ['MASTER_PORT'] = os.getenv('RPC_MASTER_PORT', '15000')
+        os.environ["MASTER_PORT"] = os.getenv("RPC_MASTER_PORT", "15000")
         rpc.init_rpc(f"worker{global_rank}", rank=global_rank, world_size=world_size)
         rpc._set_rpc_timeout(self.rpc_timeout_sec)
         self._is_rpc_initialized = True

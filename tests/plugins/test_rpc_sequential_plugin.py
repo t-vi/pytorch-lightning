@@ -65,8 +65,7 @@ def test_rpc_sequential_plugin_manual_amp(tmpdir):
         plugins=[RPCSequentialPlugin(balance=[2, 1])],
     )
     with pytest.raises(
-        MisconfigurationException,
-        match='`RPCSequentialPlugin` is currently not supported in Automatic Mixed Precision'
+        MisconfigurationException, match="`RPCSequentialPlugin` is currently not supported in Automatic Mixed Precision"
     ):
         trainer.fit(model)
 
@@ -119,7 +118,6 @@ def test_rpc_sequential_plugin_with_wrong_balance(tmpdir):
 
 
 class SequentialModelRPCManual(LightningModule):
-
     def __init__(self):
         super().__init__()
         self.sequential_module = nn.Sequential(torch.nn.Linear(32, 32), nn.ReLU(), nn.Linear(32, 2))
@@ -173,7 +171,6 @@ class SequentialModelRPCManual(LightningModule):
 
 
 class SequentialModelRPCAutomatic(SequentialModelRPCManual):
-
     def __init__(self):
         super().__init__()
         self.automatic_optimization = True

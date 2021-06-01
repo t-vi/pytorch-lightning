@@ -46,7 +46,7 @@ class _DoublePrecisionPatch:
         return apply_to_collection(collection, torch.Tensor, function=_DoublePrecisionPatch._to_double_precision)
 
     @classmethod
-    def patch(cls, model: nn.Module, method_name: str) -> '_DoublePrecisionPatch':
+    def patch(cls, model: nn.Module, method_name: str) -> "_DoublePrecisionPatch":
         old_method = getattr(model, method_name)
 
         @wraps(old_method)
@@ -70,21 +70,18 @@ class DoublePrecisionPlugin(PrecisionPlugin):
         self.patches: List[_DoublePrecisionPatch] = []
 
     def connect(
-        self,
-        model: nn.Module,
-        optimizers: List[Optimizer],
-        lr_schedulers: List[Any],
+        self, model: nn.Module, optimizers: List[Optimizer], lr_schedulers: List[Any]
     ) -> Tuple[nn.Module, List[Optimizer], List[Any]]:
         """Converts the model to double precision and wraps the `training_step`, `validation_step`, `test_step`,
         `predict_step`, and `forward` methods to convert incoming floating point data to double. Does not alter
         `optimizers` or `lr_schedulers`."""
         model = model.to(dtype=torch.float64)
         if isinstance(model, LightningModule):
-            self.patches.append(_DoublePrecisionPatch.patch(model, 'training_step'))
-            self.patches.append(_DoublePrecisionPatch.patch(model, 'validation_step'))
-            self.patches.append(_DoublePrecisionPatch.patch(model, 'test_step'))
-            self.patches.append(_DoublePrecisionPatch.patch(model, 'predict_step'))
-        self.patches.append(_DoublePrecisionPatch.patch(model, 'forward'))
+            self.patches.append(_DoublePrecisionPatch.patch(model, "training_step"))
+            self.patches.append(_DoublePrecisionPatch.patch(model, "validation_step"))
+            self.patches.append(_DoublePrecisionPatch.patch(model, "test_step"))
+            self.patches.append(_DoublePrecisionPatch.patch(model, "predict_step"))
+        self.patches.append(_DoublePrecisionPatch.patch(model, "forward"))
 
         return super().connect(model, optimizers, lr_schedulers)
 

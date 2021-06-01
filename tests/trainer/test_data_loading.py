@@ -22,20 +22,17 @@ from tests.helpers.runif import RunIf
 
 
 class IndexedRandomDataset(RandomDataset):
-
     def __getitem__(self, index):
         return self.data[index]
 
 
 class CustomDataLoader(DataLoader):
-
     def __init__(self, num_features, dataset, *args, **kwargs):
         self.num_features = num_features
         super().__init__(dataset, *args, **kwargs)
 
 
 class FailureCustomDataLoader(DataLoader):
-
     def __init__(self, num_features, dataset, *args, **kwargs):
         super().__init__(dataset, *args, **kwargs)
 
@@ -45,7 +42,6 @@ class CustomBatchSampler(BatchSampler):
 
 
 class TestModel(BoringModel):
-
     def __init__(self, numbers_test_dataloaders, save_preds_on_dl_idx, mode):
         super().__init__()
         self._numbers_test_dataloaders = numbers_test_dataloaders
@@ -74,11 +70,7 @@ class TestModel(BoringModel):
 def check_replace_distributed_sampler(tmpdir, save_preds_on_dl_idx, accelerator, gpus, num_dl_idx, mode):
     num_processes = 2
     limit_test_batches = 2
-    trainer_args = {
-        "default_root_dir": tmpdir,
-        "limit_test_batches": limit_test_batches,
-        "accelerator": accelerator,
-    }
+    trainer_args = {"default_root_dir": tmpdir, "limit_test_batches": limit_test_batches, "accelerator": accelerator}
 
     if accelerator == "ddp_cpu":
         trainer_args["num_processes"] = num_processes
@@ -105,9 +97,7 @@ def test_replace_distributed_sampler_custom_dataloader_custom_batch_sampler(tmpd
 
 @pytest.mark.parametrize("num_workers", [0, 1])
 def test_dataloader_warnings(num_workers):
-
     class TestModel(BoringModel):
-
         def on_train_start(self, *_) -> None:
             raise SystemExit()
 

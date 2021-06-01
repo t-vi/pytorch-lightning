@@ -29,13 +29,14 @@ if _XLA_AVAILABLE:
     # the patch is not required after 1.5.0
     if _TORCH_GREATER_EQUAL_1_5:
         from torch_xla._patched_functions import _apply_patches
+
         _apply_patches()  # patches `torch.nn.utils.clip_grad_norm_`
 
 
 class TPUAccelerator(Accelerator):
-    """ Accelerator for TPU devices. """
+    """Accelerator for TPU devices."""
 
-    def setup(self, trainer: 'pl.Trainer', model: 'pl.LightningModule') -> None:
+    def setup(self, trainer: "pl.Trainer", model: "pl.LightningModule") -> None:
         """
         Raises:
             MisconfigurationException:
@@ -53,4 +54,4 @@ class TPUAccelerator(Accelerator):
     def run_optimizer_step(
         self, optimizer: Optimizer, optimizer_idx: int, lambda_closure: Callable, **kwargs: Any
     ) -> None:
-        xm.optimizer_step(optimizer, optimizer_args={'closure': lambda_closure, **kwargs})
+        xm.optimizer_step(optimizer, optimizer_args={"closure": lambda_closure, **kwargs})

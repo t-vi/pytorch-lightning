@@ -24,46 +24,42 @@ from tests.helpers.simple_models import ClassificationModel
 
 
 def test_lr_monitor_single_lr(tmpdir):
-    """ Test that learning rates are extracted and logged for single lr scheduler. """
+    """Test that learning rates are extracted and logged for single lr scheduler."""
     tutils.reset_seed()
 
     model = BoringModel()
 
     lr_monitor = LearningRateMonitor()
     trainer = Trainer(
-        default_root_dir=tmpdir,
-        max_epochs=2,
-        limit_val_batches=0.1,
-        limit_train_batches=0.5,
-        callbacks=[lr_monitor],
+        default_root_dir=tmpdir, max_epochs=2, limit_val_batches=0.1, limit_train_batches=0.5, callbacks=[lr_monitor]
     )
     trainer.fit(model)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
 
-    assert lr_monitor.lrs, 'No learning rates logged'
-    assert all(v is None for v in lr_monitor.last_momentum_values.values()), \
-        'Momentum should not be logged by default'
-    assert len(lr_monitor.lrs) == len(trainer.lr_schedulers), \
-        'Number of learning rates logged does not match number of lr schedulers'
-    assert lr_monitor.lr_sch_names == list(lr_monitor.lrs.keys()) == ['lr-SGD'], \
-        'Names of learning rates not set correctly'
+    assert lr_monitor.lrs, "No learning rates logged"
+    assert all(v is None for v in lr_monitor.last_momentum_values.values()), "Momentum should not be logged by default"
+    assert len(lr_monitor.lrs) == len(
+        trainer.lr_schedulers
+    ), "Number of learning rates logged does not match number of lr schedulers"
+    assert (
+        lr_monitor.lr_sch_names == list(lr_monitor.lrs.keys()) == ["lr-SGD"]
+    ), "Names of learning rates not set correctly"
 
 
-@pytest.mark.parametrize('opt', ['SGD', 'Adam'])
+@pytest.mark.parametrize("opt", ["SGD", "Adam"])
 def test_lr_monitor_single_lr_with_momentum(tmpdir, opt: str):
     """Test that learning rates and momentum are extracted and logged for single lr scheduler."""
 
     class LogMomentumModel(BoringModel):
-
         def __init__(self, opt):
             super().__init__()
             self.opt = opt
 
         def configure_optimizers(self):
-            if self.opt == 'SGD':
-                opt_kwargs = {'momentum': 0.9}
-            elif self.opt == 'Adam':
-                opt_kwargs = {'betas': (0.9, 0.999)}
+            if self.opt == "SGD":
+                opt_kwargs = {"momentum": 0.9}
+            elif self.opt == "Adam":
+                opt_kwargs = {"betas": (0.9, 0.999)}
 
             optimizer = getattr(optim, self.opt)(self.parameters(), lr=1e-2, **opt_kwargs)
             lr_scheduler = optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-2, total_steps=10_000)
@@ -82,12 +78,13 @@ def test_lr_monitor_single_lr_with_momentum(tmpdir, opt: str):
     trainer.fit(model)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
 
-    assert all(v is not None for v in lr_monitor.last_momentum_values.values()), \
-        'Expected momentum to be logged'
-    assert len(lr_monitor.last_momentum_values) == len(trainer.lr_schedulers), \
-        'Number of momentum values logged does not match number of lr schedulers'
-    assert all(k == f'lr-{opt}-momentum' for k in lr_monitor.last_momentum_values.keys()), \
-        'Names of momentum values not set correctly'
+    assert all(v is not None for v in lr_monitor.last_momentum_values.values()), "Expected momentum to be logged"
+    assert len(lr_monitor.last_momentum_values) == len(
+        trainer.lr_schedulers
+    ), "Number of momentum values logged does not match number of lr schedulers"
+    assert all(
+        k == f"lr-{opt}-momentum" for k in lr_monitor.last_momentum_values.keys()
+    ), "Names of momentum values not set correctly"
 
 
 def test_log_momentum_no_momentum_optimizer(tmpdir):
@@ -96,7 +93,6 @@ def test_log_momentum_no_momentum_optimizer(tmpdir):
     """
 
     class LogMomentumModel(BoringModel):
-
         def configure_optimizers(self):
             optimizer = optim.ASGD(self.parameters(), lr=1e-2)
             lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1)
@@ -116,19 +112,19 @@ def test_log_momentum_no_momentum_optimizer(tmpdir):
         trainer.fit(model)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
 
-    assert all(v == 0 for v in lr_monitor.last_momentum_values.values()), \
-        'Expected momentum to be logged'
-    assert len(lr_monitor.last_momentum_values) == len(trainer.lr_schedulers), \
-        'Number of momentum values logged does not match number of lr schedulers'
-    assert all(k == 'lr-ASGD-momentum' for k in lr_monitor.last_momentum_values.keys()), \
-        'Names of momentum values not set correctly'
+    assert all(v == 0 for v in lr_monitor.last_momentum_values.values()), "Expected momentum to be logged"
+    assert len(lr_monitor.last_momentum_values) == len(
+        trainer.lr_schedulers
+    ), "Number of momentum values logged does not match number of lr schedulers"
+    assert all(
+        k == "lr-ASGD-momentum" for k in lr_monitor.last_momentum_values.keys()
+    ), "Names of momentum values not set correctly"
 
 
 def test_lr_monitor_no_lr_scheduler(tmpdir):
     tutils.reset_seed()
 
     class CustomBoringModel(BoringModel):
-
         def configure_optimizers(self):
             optimizer = optim.SGD(self.parameters(), lr=0.1)
             return optimizer
@@ -137,14 +133,10 @@ def test_lr_monitor_no_lr_scheduler(tmpdir):
 
     lr_monitor = LearningRateMonitor()
     trainer = Trainer(
-        default_root_dir=tmpdir,
-        max_epochs=2,
-        limit_val_batches=0.1,
-        limit_train_batches=0.5,
-        callbacks=[lr_monitor],
+        default_root_dir=tmpdir, max_epochs=2, limit_val_batches=0.1, limit_train_batches=0.5, callbacks=[lr_monitor]
     )
 
-    with pytest.warns(RuntimeWarning, match='have no learning rate schedulers'):
+    with pytest.warns(RuntimeWarning, match="have no learning rate schedulers"):
         trainer.fit(model)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
 
@@ -155,24 +147,18 @@ def test_lr_monitor_no_logger(tmpdir):
     model = BoringModel()
 
     lr_monitor = LearningRateMonitor()
-    trainer = Trainer(
-        default_root_dir=tmpdir,
-        max_epochs=1,
-        callbacks=[lr_monitor],
-        logger=False,
-    )
+    trainer = Trainer(default_root_dir=tmpdir, max_epochs=1, callbacks=[lr_monitor], logger=False)
 
-    with pytest.raises(MisconfigurationException, match='`Trainer` that has no logger'):
+    with pytest.raises(MisconfigurationException, match="`Trainer` that has no logger"):
         trainer.fit(model)
 
 
-@pytest.mark.parametrize("logging_interval", ['step', 'epoch'])
+@pytest.mark.parametrize("logging_interval", ["step", "epoch"])
 def test_lr_monitor_multi_lrs(tmpdir, logging_interval: str):
-    """ Test that learning rates are extracted and logged for multi lr schedulers. """
+    """Test that learning rates are extracted and logged for multi lr schedulers."""
     tutils.reset_seed()
 
     class CustomBoringModel(BoringModel):
-
         def training_step(self, batch, batch_idx, optimizer_idx):
             return super().training_step(batch, batch_idx)
 
@@ -201,35 +187,32 @@ def test_lr_monitor_multi_lrs(tmpdir, logging_interval: str):
     trainer.fit(model)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
 
-    assert lr_monitor.lrs, 'No learning rates logged'
-    assert len(lr_monitor.lrs) == len(trainer.lr_schedulers), \
-        'Number of learning rates logged does not match number of lr schedulers'
-    assert lr_monitor.lr_sch_names == ['lr-Adam', 'lr-Adam-1'], \
-        'Names of learning rates not set correctly'
+    assert lr_monitor.lrs, "No learning rates logged"
+    assert len(lr_monitor.lrs) == len(
+        trainer.lr_schedulers
+    ), "Number of learning rates logged does not match number of lr schedulers"
+    assert lr_monitor.lr_sch_names == ["lr-Adam", "lr-Adam-1"], "Names of learning rates not set correctly"
 
-    if logging_interval == 'step':
+    if logging_interval == "step":
         expected_number_logged = trainer.global_step // log_every_n_steps
-    if logging_interval == 'epoch':
+    if logging_interval == "epoch":
         expected_number_logged = trainer.max_epochs
 
-    assert all(len(lr) == expected_number_logged for lr in lr_monitor.lrs.values()), \
-        'Length of logged learning rates do not match the expected number'
+    assert all(
+        len(lr) == expected_number_logged for lr in lr_monitor.lrs.values()
+    ), "Length of logged learning rates do not match the expected number"
 
 
 def test_lr_monitor_param_groups(tmpdir):
-    """ Test that learning rates are extracted and logged for single lr scheduler. """
+    """Test that learning rates are extracted and logged for single lr scheduler."""
     tutils.reset_seed()
 
     class CustomClassificationModel(ClassificationModel):
-
         def configure_optimizers(self):
-            param_groups = [{
-                'params': list(self.parameters())[:2],
-                'lr': self.lr * 0.1
-            }, {
-                'params': list(self.parameters())[2:],
-                'lr': self.lr
-            }]
+            param_groups = [
+                {"params": list(self.parameters())[:2], "lr": self.lr * 0.1},
+                {"params": list(self.parameters())[2:], "lr": self.lr},
+            ]
 
             optimizer = optim.Adam(param_groups)
             lr_scheduler = optim.lr_scheduler.StepLR(optimizer, 1, gamma=0.1)
@@ -240,30 +223,24 @@ def test_lr_monitor_param_groups(tmpdir):
 
     lr_monitor = LearningRateMonitor()
     trainer = Trainer(
-        default_root_dir=tmpdir,
-        max_epochs=2,
-        limit_val_batches=0.1,
-        limit_train_batches=0.5,
-        callbacks=[lr_monitor],
+        default_root_dir=tmpdir, max_epochs=2, limit_val_batches=0.1, limit_train_batches=0.5, callbacks=[lr_monitor]
     )
     trainer.fit(model, datamodule=dm)
     assert trainer.state.finished, f"Training failed with {trainer.state}"
 
-    assert lr_monitor.lrs, 'No learning rates logged'
-    assert len(lr_monitor.lrs) == 2 * len(trainer.lr_schedulers), \
-        'Number of learning rates logged does not match number of param groups'
-    assert lr_monitor.lr_sch_names == ['lr-Adam']
-    assert list(lr_monitor.lrs.keys()) == ['lr-Adam/pg1', 'lr-Adam/pg2'], \
-        'Names of learning rates not set correctly'
+    assert lr_monitor.lrs, "No learning rates logged"
+    assert len(lr_monitor.lrs) == 2 * len(
+        trainer.lr_schedulers
+    ), "Number of learning rates logged does not match number of param groups"
+    assert lr_monitor.lr_sch_names == ["lr-Adam"]
+    assert list(lr_monitor.lrs.keys()) == ["lr-Adam/pg1", "lr-Adam/pg2"], "Names of learning rates not set correctly"
 
 
 def test_lr_monitor_custom_name(tmpdir):
-
     class TestModel(BoringModel):
-
         def configure_optimizers(self):
             optimizer, [scheduler] = super().configure_optimizers()
-            lr_scheduler = {'scheduler': scheduler, 'name': 'my_logging_name'}
+            lr_scheduler = {"scheduler": scheduler, "name": "my_logging_name"}
             return optimizer, [lr_scheduler]
 
     lr_monitor = LearningRateMonitor()
@@ -277,4 +254,4 @@ def test_lr_monitor_custom_name(tmpdir):
         weights_summary=None,
     )
     trainer.fit(TestModel())
-    assert lr_monitor.lr_sch_names == list(lr_monitor.lrs.keys()) == ['my_logging_name']
+    assert lr_monitor.lr_sch_names == list(lr_monitor.lrs.keys()) == ["my_logging_name"]

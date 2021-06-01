@@ -35,10 +35,7 @@ def test_trainer_callback_hook_system_fit(_, tmpdir):
 
     # check that only the to calls exists
     assert trainer.callbacks[0] == callback_mock
-    assert callback_mock.method_calls == [
-        call.on_init_start(trainer),
-        call.on_init_end(trainer),
-    ]
+    assert callback_mock.method_calls == [call.on_init_start(trainer), call.on_init_end(trainer)]
 
     # fit model
     trainer.fit(model)
@@ -47,7 +44,7 @@ def test_trainer_callback_hook_system_fit(_, tmpdir):
         call.on_init_start(trainer),
         call.on_init_end(trainer),
         call.on_before_accelerator_backend_setup(trainer, model),
-        call.setup(trainer, model, 'fit'),
+        call.setup(trainer, model, "fit"),
         call.on_configure_sharded_model(trainer, model),
         call.on_fit_start(trainer, model),
         call.on_pretrain_routine_start(trainer, model),
@@ -96,7 +93,7 @@ def test_trainer_callback_hook_system_fit(_, tmpdir):
         call.on_epoch_end(trainer, model),
         call.on_train_end(trainer, model),
         call.on_fit_end(trainer, model),
-        call.teardown(trainer, model, 'fit'),
+        call.teardown(trainer, model, "fit"),
     ]
 
 
@@ -119,7 +116,7 @@ def test_trainer_callback_hook_system_test(tmpdir):
         call.on_init_start(trainer),
         call.on_init_end(trainer),
         call.on_before_accelerator_backend_setup(trainer, model),
-        call.setup(trainer, model, 'test'),
+        call.setup(trainer, model, "test"),
         call.on_configure_sharded_model(trainer, model),
         call.on_test_start(trainer, model),
         call.on_epoch_start(trainer, model),
@@ -131,7 +128,7 @@ def test_trainer_callback_hook_system_test(tmpdir):
         call.on_test_epoch_end(trainer, model),
         call.on_epoch_end(trainer, model),
         call.on_test_end(trainer, model),
-        call.teardown(trainer, model, 'test'),
+        call.teardown(trainer, model, "test"),
     ]
 
 
@@ -154,7 +151,7 @@ def test_trainer_callback_hook_system_validate(tmpdir):
         call.on_init_start(trainer),
         call.on_init_end(trainer),
         call.on_before_accelerator_backend_setup(trainer, model),
-        call.setup(trainer, model, 'validate'),
+        call.setup(trainer, model, "validate"),
         call.on_configure_sharded_model(trainer, model),
         call.on_validation_start(trainer, model),
         call.on_epoch_start(trainer, model),
@@ -166,7 +163,7 @@ def test_trainer_callback_hook_system_validate(tmpdir):
         call.on_validation_epoch_end(trainer, model),
         call.on_epoch_end(trainer, model),
         call.on_validation_end(trainer, model),
-        call.teardown(trainer, model, 'validate'),
+        call.teardown(trainer, model, "validate"),
     ]
 
 
@@ -174,30 +171,23 @@ def test_trainer_callback_hook_system_validate(tmpdir):
 
 
 def test_callbacks_configured_in_model(tmpdir):
-    """ Test the callback system with callbacks added through the model hook. """
+    """Test the callback system with callbacks added through the model hook."""
 
     model_callback_mock = Mock()
     trainer_callback_mock = Mock()
 
     class TestModel(BoringModel):
-
         def configure_callbacks(self):
             return [model_callback_mock]
 
     model = TestModel()
     trainer_options = dict(
-        default_root_dir=tmpdir,
-        checkpoint_callback=False,
-        fast_dev_run=True,
-        progress_bar_refresh_rate=0,
+        default_root_dir=tmpdir, checkpoint_callback=False, fast_dev_run=True, progress_bar_refresh_rate=0
     )
 
     def assert_expected_calls(_trainer, model_callback, trainer_callback):
         # some methods in callbacks configured through model won't get called
-        uncalled_methods = [
-            call.on_init_start(_trainer),
-            call.on_init_end(_trainer),
-        ]
+        uncalled_methods = [call.on_init_start(_trainer), call.on_init_end(_trainer)]
         for uncalled in uncalled_methods:
             assert uncalled not in model_callback.method_calls
 
@@ -235,20 +225,16 @@ def test_callbacks_configured_in_model(tmpdir):
 
 
 def test_configure_callbacks_hook_multiple_calls(tmpdir):
-    """ Test that subsequent calls to `configure_callbacks` do not change the callbacks list. """
+    """Test that subsequent calls to `configure_callbacks` do not change the callbacks list."""
     model_callback_mock = Mock()
 
     class TestModel(BoringModel):
-
         def configure_callbacks(self):
             return [model_callback_mock]
 
     model = TestModel()
     trainer = Trainer(
-        default_root_dir=tmpdir,
-        fast_dev_run=True,
-        checkpoint_callback=False,
-        progress_bar_refresh_rate=1,
+        default_root_dir=tmpdir, fast_dev_run=True, checkpoint_callback=False, progress_bar_refresh_rate=1
     )
 
     callbacks_before_fit = trainer.callbacks.copy()

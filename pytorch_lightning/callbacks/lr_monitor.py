@@ -68,8 +68,8 @@ class LearningRateMonitor(Callback):
     """
 
     def __init__(self, logging_interval: Optional[str] = None, log_momentum: bool = False):
-        if logging_interval not in (None, 'step', 'epoch'):
-            raise MisconfigurationException('logging_interval should be `step` or `epoch` or `None`.')
+        if logging_interval not in (None, "step", "epoch"):
+            raise MisconfigurationException("logging_interval should be `step` or `epoch` or `None`.")
 
         self.logging_interval = logging_interval
         self.log_momentum = log_momentum
@@ -88,25 +88,27 @@ class LearningRateMonitor(Callback):
         """
         if not trainer.logger:
             raise MisconfigurationException(
-                'Cannot use `LearningRateMonitor` callback with `Trainer` that has no logger.'
+                "Cannot use `LearningRateMonitor` callback with `Trainer` that has no logger."
             )
 
         if not trainer.lr_schedulers:
             rank_zero_warn(
-                'You are using `LearningRateMonitor` callback with models that'
-                ' have no learning rate schedulers. Please see documentation'
-                ' for `configure_optimizers` method.', RuntimeWarning
+                "You are using `LearningRateMonitor` callback with models that"
+                " have no learning rate schedulers. Please see documentation"
+                " for `configure_optimizers` method.",
+                RuntimeWarning,
             )
 
         if self.log_momentum:
 
             def _check_no_key(key):
-                return any(key not in sch['scheduler'].optimizer.defaults for sch in trainer.lr_schedulers)
+                return any(key not in sch["scheduler"].optimizer.defaults for sch in trainer.lr_schedulers)
 
-            if _check_no_key('momentum') and _check_no_key('betas'):
+            if _check_no_key("momentum") and _check_no_key("betas"):
                 rank_zero_warn(
                     "You have set log_momentum=True, but some optimizers do not"
-                    " have momentum. This will log a value 0 for the momentum.", RuntimeWarning
+                    " have momentum. This will log a value 0 for the momentum.",
+                    RuntimeWarning,
                 )
 
         # Find names for schedulers
@@ -120,16 +122,16 @@ class LearningRateMonitor(Callback):
         if not self._should_log(trainer):
             return
 
-        if self.logging_interval != 'epoch':
-            interval = 'step' if self.logging_interval is None else 'any'
+        if self.logging_interval != "epoch":
+            interval = "step" if self.logging_interval is None else "any"
             latest_stat = self._extract_stats(trainer, interval)
 
             if latest_stat:
                 trainer.logger.log_metrics(latest_stat, step=trainer.global_step)
 
     def on_train_epoch_start(self, trainer, *args, **kwargs):
-        if self.logging_interval != 'step':
-            interval = 'epoch' if self.logging_interval is None else 'any'
+        if self.logging_interval != "step":
+            interval = "epoch" if self.logging_interval is None else "any"
             latest_stat = self._extract_stats(trainer, interval)
 
             if latest_stat:
@@ -139,24 +141,24 @@ class LearningRateMonitor(Callback):
         latest_stat = {}
 
         for name, scheduler in zip(self.lr_sch_names, trainer.lr_schedulers):
-            if scheduler['interval'] == interval or interval == 'any':
-                opt = scheduler['scheduler'].optimizer
+            if scheduler["interval"] == interval or interval == "any":
+                opt = scheduler["scheduler"].optimizer
                 param_groups = opt.param_groups
-                use_betas = 'betas' in opt.defaults
+                use_betas = "betas" in opt.defaults
 
                 for i, pg in enumerate(param_groups):
-                    suffix = f'/pg{i + 1}' if len(param_groups) > 1 else ''
-                    lr = self._extract_lr(param_group=pg, name=f'{name}{suffix}')
+                    suffix = f"/pg{i + 1}" if len(param_groups) > 1 else ""
+                    lr = self._extract_lr(param_group=pg, name=f"{name}{suffix}")
                     latest_stat.update(lr)
                     momentum = self._extract_momentum(
-                        param_group=pg, name=f'{name}-momentum{suffix}', use_betas=use_betas
+                        param_group=pg, name=f"{name}-momentum{suffix}", use_betas=use_betas
                     )
                     latest_stat.update(momentum)
 
         return latest_stat
 
     def _extract_lr(self, param_group, name: str) -> Dict[str, float]:
-        lr = param_group.get('lr')
+        lr = param_group.get("lr")
         self.lrs[name].append(lr)
         return {name: lr}
 
@@ -164,7 +166,7 @@ class LearningRateMonitor(Callback):
         if not self.log_momentum:
             return {}
 
-        momentum = param_group.get('betas')[0] if use_betas else param_group.get('momentum', 0)
+        momentum = param_group.get("betas")[0] if use_betas else param_group.get("momentum", 0)
         self.last_momentum_values[name] = momentum
         return {name: momentum}
 
@@ -173,25 +175,25 @@ class LearningRateMonitor(Callback):
         # rate schduler + multiple parameter groups
         names = []
         for scheduler in lr_schedulers:
-            sch = scheduler['scheduler']
-            if scheduler['name'] is not None:
-                name = scheduler['name']
+            sch = scheduler["scheduler"]
+            if scheduler["name"] is not None:
+                name = scheduler["name"]
             else:
-                opt_name = 'lr-' + sch.optimizer.__class__.__name__
+                opt_name = "lr-" + sch.optimizer.__class__.__name__
                 i, name = 1, opt_name
 
                 # Multiple schduler of the same type
                 while True:
                     if name not in names:
                         break
-                    i, name = i + 1, f'{opt_name}-{i}'
+                    i, name = i + 1, f"{opt_name}-{i}"
 
             # Multiple param groups for the same schduler
             param_groups = sch.optimizer.param_groups
 
             if len(param_groups) != 1:
                 for i, pg in enumerate(param_groups):
-                    temp = f'{name}/pg{i + 1}'
+                    temp = f"{name}/pg{i + 1}"
                     names.append(temp)
             else:
                 names.append(name)

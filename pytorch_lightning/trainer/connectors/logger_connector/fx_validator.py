@@ -40,15 +40,15 @@ class FxValidator:
         on_pretrain_routine_start=None,
         on_pretrain_routine_end=None,
         on_train_epoch_start=dict(on_step=(False, True), on_epoch=(False, True)),
-        on_train_epoch_end=dict(on_step=(False, ), on_epoch=(False, True)),
+        on_train_epoch_end=dict(on_step=(False,), on_epoch=(False, True)),
         on_validation_epoch_start=dict(on_step=(False, True), on_epoch=(False, True)),
-        on_validation_epoch_end=dict(on_step=(False, ), on_epoch=(False, True)),
+        on_validation_epoch_end=dict(on_step=(False,), on_epoch=(False, True)),
         on_test_epoch_start=dict(on_step=(False, True), on_epoch=(False, True)),
-        on_test_epoch_end=dict(on_step=(False, ), on_epoch=(False, True)),
+        on_test_epoch_end=dict(on_step=(False,), on_epoch=(False, True)),
         on_predict_epoch_start=None,
         on_predict_epoch_end=None,
         on_epoch_start=dict(on_step=(False, True), on_epoch=(False, True)),
-        on_epoch_end=dict(on_step=(False, ), on_epoch=(False, True)),
+        on_epoch_end=dict(on_step=(False,), on_epoch=(False, True)),
         on_batch_start=dict(on_step=(False, True), on_epoch=(False, True)),
         on_batch_end=dict(on_step=(False, True), on_epoch=(False, True)),
         on_train_batch_start=dict(on_step=(False, True), on_epoch=(False, True)),
@@ -72,17 +72,17 @@ class FxValidator:
         training_step_end=dict(on_step=(False, True), on_epoch=(False, True)),
         validation_step_end=dict(on_step=(False, True), on_epoch=(False, True)),
         test_step_end=dict(on_step=(False, True), on_epoch=(False, True)),
-        training_epoch_end=dict(on_step=(False, ), on_epoch=(False, True)),
-        validation_epoch_end=dict(on_step=(False, ), on_epoch=(False, True)),
-        test_epoch_end=dict(on_step=(False, ), on_epoch=(False, True)),
+        training_epoch_end=dict(on_step=(False,), on_epoch=(False, True)),
+        validation_epoch_end=dict(on_step=(False,), on_epoch=(False, True)),
+        test_epoch_end=dict(on_step=(False,), on_epoch=(False, True)),
         # TODO(@carmocca): some {step,epoch}_{start,end} are missing
     )
 
     def check_logging(self, fx_name: str, on_step: bool, on_epoch: bool) -> None:
         if fx_name not in self.functions:
             raise RuntimeError(
-                f'You are trying to `self.log()` inside `{fx_name}` but it is not implemented.'
-                ' Please, open an issue in `https://github.com/PyTorchLightning/pytorch-lightning/issues`'
+                f"You are trying to `self.log()` inside `{fx_name}` but it is not implemented."
+                " Please, open an issue in `https://github.com/PyTorchLightning/pytorch-lightning/issues`"
             )
         allowed = self.functions[fx_name]
         if allowed is None:
