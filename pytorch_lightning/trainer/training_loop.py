@@ -22,6 +22,7 @@ import numpy as np
 import torch
 from torch.optim import Optimizer
 
+from benchmarks.test_basic_parity import _hook_memory
 from pytorch_lightning.core.optimizer import LightningOptimizer
 from pytorch_lightning.plugins import ParallelPlugin
 from pytorch_lightning.trainer.connectors.logger_connector.result import Result
@@ -488,16 +489,18 @@ class TrainLoop:
             # TRAINING_STEP + TRAINING_STEP_END
             # ------------------------------------
 
+            print("before to_device", _hook_memory())
             with self.trainer.profiler.profile("training_batch_to_device"):
                 batch = self.trainer.accelerator.batch_to_device(batch, dataloader_idx=dataloader_idx)
 
+            print("before training_step", _hook_memory())
             with self.trainer.profiler.profile("run_training_batch"):
                 batch_output = self.run_training_batch(batch, batch_idx, dataloader_idx)
 
             # when returning -1 from train_step, we end epoch early
             if batch_output.signal == -1:
                 break
-
+            print("before on batch end", _hook_memory())
             # hook
             # TODO: add outputs to batches
             self.on_train_batch_end(
@@ -507,9 +510,10 @@ class TrainLoop:
                 batch_idx,
                 dataloader_idx,
             )
-
+            print("before del", _hook_memory())
             # release memory before running any other hooks
             del batch
+            print("after del", _hook_memory())
 
             # -----------------------------------------
             # SAVE METRICS TO LOGGERS
