@@ -22,7 +22,6 @@ import numpy as np
 import torch
 from torch.optim import Optimizer
 
-from benchmarks.test_basic_parity import _hook_memory
 from pytorch_lightning.core.optimizer import LightningOptimizer
 from pytorch_lightning.plugins import ParallelPlugin
 from pytorch_lightning.trainer.connectors.logger_connector.result import Result
@@ -981,3 +980,12 @@ class TrainLoop:
 
         # reset for next set of accumulated grads
         self.accumulated_loss.reset()
+
+
+def _hook_memory():
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+        used_memory = torch.cuda.max_memory_allocated()
+    else:
+        used_memory = np.nan
+    return used_memory
