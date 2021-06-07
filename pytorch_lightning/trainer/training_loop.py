@@ -512,6 +512,7 @@ class TrainLoop:
             print("before del", _hook_memory())
             # release memory before running any other hooks
             del batch
+            torch.cuda.empty_cache()
             print("after del", _hook_memory())
 
             # -----------------------------------------
