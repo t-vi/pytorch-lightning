@@ -38,15 +38,12 @@ class BoringModel(LightningModule):
 
     def training_step_end(self, step_outputs):
         losses = step_outputs["loss"]
-        print(losses)
-        assert len(losses) == 2
+        assert losses.shape[0] == 2  # loss from both gpus
         loss = losses.mean()
 
         batches = step_outputs["batch"]
-        print(batches.shape)
-        assert batches.shape[0] == 2
-        assert batches.shape[1] == 4
-
+        assert batches.shape[0] == 8  # 2 x 4
+        assert batches.shape[1] == 32
         return loss
 
     def configure_optimizers(self):
