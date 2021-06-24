@@ -4,6 +4,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from pytorch_lightning import LightningModule, Trainer
+from pytorch_lightning.plugins import DataParallelPlugin
 
 
 class RandomDataset(Dataset):
@@ -30,37 +31,42 @@ class BoringModel(LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss = self(batch).sum()
+        print("batch", batch.shape)
         self.log("train_loss", loss)
-        return {"loss": loss}
+        return {"loss": loss, "batch": batch}
 
-    def validation_step(self, batch, batch_idx):
-        loss = self(batch).sum()
-        self.log("valid_loss", loss)
+    def training_step_end(self, step_outputs):
+        losses = step_outputs["loss"]
+        print(losses)
+        assert len(losses) == 2
+        loss = losses.mean()
 
-    def test_step(self, batch, batch_idx):
-        loss = self(batch).sum()
-        self.log("test_loss", loss)
+        batches = step_outputs["batch"]
+        assert batches.shape[0] == 2
+        assert batches.shape[1] == 32
+        print(batches)
+        return loss
 
     def configure_optimizers(self):
         return torch.optim.SGD(self.layer.parameters(), lr=0.1)
 
 
 def run():
-    train_data = DataLoader(RandomDataset(32, 64), batch_size=2)
-    val_data = DataLoader(RandomDataset(32, 64), batch_size=2)
-    test_data = DataLoader(RandomDataset(32, 64), batch_size=2)
+    train_data = DataLoader(RandomDataset(32, 64), batch_size=4)
 
     model = BoringModel()
     trainer = Trainer(
         default_root_dir=os.getcwd(),
-        limit_train_batches=1,
-        limit_val_batches=1,
+        limit_train_batches=2,
+        limit_val_batches=2,
         num_sanity_val_steps=0,
         max_epochs=1,
         weights_summary=None,
+        accelerator="dp",
+        gpus=2,
     )
-    trainer.fit(model, train_dataloader=train_data, val_dataloaders=val_data)
-    trainer.test(model, test_dataloaders=test_data)
+    assert isinstance(trainer.training_type_plugin, DataParallelPlugin)
+    trainer.fit(model, train_dataloader=train_data)
 
 
 if __name__ == '__main__':
