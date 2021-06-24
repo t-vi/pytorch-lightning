@@ -31,7 +31,8 @@ class BoringModel(LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss = self(batch).sum()
-        print("batch", batch.shape)
+        assert batch.shape[0] == 4
+        assert batch.shape[1] == 32
         self.log("train_loss", loss)
         return {"loss": loss, "batch": batch}
 
@@ -42,9 +43,10 @@ class BoringModel(LightningModule):
         loss = losses.mean()
 
         batches = step_outputs["batch"]
+        print(batches.shape)
         assert batches.shape[0] == 2
-        assert batches.shape[1] == 32
-        print(batches)
+        assert batches.shape[1] == 4
+
         return loss
 
     def configure_optimizers(self):
@@ -52,7 +54,7 @@ class BoringModel(LightningModule):
 
 
 def run():
-    train_data = DataLoader(RandomDataset(32, 64), batch_size=4)
+    train_data = DataLoader(RandomDataset(32, 64), batch_size=8)  # each gpu gets a batch size 4
 
     model = BoringModel()
     trainer = Trainer(
