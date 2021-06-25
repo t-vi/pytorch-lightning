@@ -83,6 +83,13 @@ jobs:
       matrix:
         python_version: ["3.6", "3.7", "3.8", "3.9"]
         pytorch_version: ["1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "1.10"]
+        #exclude:
+        #  - python_version: "3.9"
+        #    pytorch_version: "1.4"
+        #  - python_version: "3.9"
+        #    pytorch_version: "1.5"
+        #  - python_version: "3.9"
+        #    pytorch_version: "1.6"
 
     steps:
       - name: Checkout
@@ -104,7 +111,7 @@ jobs:
         id: extend
 
       - name: Publish CUDA to Docker Hub
-        if: matrix.pytorch_version <= 1.8
+        if: matrix.pytorch_version == "1.10"
         # publish master/release
         uses: docker/build-push-action@v2
         with:
